@@ -8,14 +8,127 @@
 
   <ProjectLogo title="Randomizer" image="static/rando/logo.png" show_title={ true }/>
 
+  <p>TR Rando is a randomizer tool for the classic Tomb Raider series. It was originally created for TR2, with TR1 and TR3 support later being added; in the future, TR4, TR5 and each of the expansion packs will also be supported.</p>
+
   <p>Useful links:</p>
 
   <ul class="no-bullets">
+    <li>
+      <a href='https://github.com/lostartefacts/tr-rando/releases/latest'>
+        <IconDownload/>
+        Download
+      </a>
+    </li>
+
     <li>
       <a href='https://github.com/lostartefacts/tr-rando'>
         <IconGithub/>
         GitHub repository
       </a>
     </li>
+
+    <li>
+      <a href='https://github.com/lostartefacts/tr-rando/tree/master/CHANGELOG.md'>
+        <IconNotes/>
+        Changelog
+      </a>
+    </li>
   </ul>
+
+  <h2>Features</h2>
+
+  <p>The randomizer can mix-up many aspects of the original levels, creating a unique experience each time you play, and at times some very interesting scenarios. Everything is optional so you can tune the outcome to your preference each time.</p>
+
+  <h4>Items</h4>
+  <ul>
+    <li>Change the location and type of each pickup item</li>
+    <li>Key items can also be included for an additional challenge</li>
+    <li>Create a one-item mode challenge</li>
+    <li>Alter pickup appearance so you don't know what you're picking up each time</li>
+  </ul>
+
+  <h4>Secrets</h4>
+  <ul>
+    <li>Change the location of each secret (TR1 and TR3 use artefact pickups, similar to TR2)</li>
+    <li>Choose between easy and hard mode and optionally include locations that require glitch knowledge</li>
+    <li>Randomize the rewards you receive for collecting all secrets</li>
+    <li>Change the appearance of pickup sprites</li>
+  </ul>
+
+  <h4>Enemies</h4>
+  <ul>
+    <li>Switch up the enemy types that appear in each level</li>
+    <li>Filter out certain enemies according to preference</li>
+    <li>Use a cloned enemy mode for an extra challenge in TR1</li>
+  </ul>
+
+  <h4>Lara</h4>
+  <ul>
+    <li>Change Lara's outfit</li>
+    <li>Randomly add or remove Lara's braid</li>
+    <li>Make Lara invisible</li>
+    <li>Change Lara's starting position in the level</li>
+  </ul>
+
+  <h4>Audio</h4>
+  <ul>
+    <li>Change triggered music tracks</li>
+    <li>Change ambient music</li>
+    <li>Change the majority of sound effects</li>
+    <li>Use uncontrolled SFX mode for a truly random experience</li>
+  </ul>
+
+  <h4>Visuals</h4>
+  <ul>
+    <li>Change various textures, from the skybox right down to to the colour of Lara's socks</li>
+    <li>Choose to play levels at night, or to use the sunset effect in TR2 to gradually darken the level</li>
+    <li>Choose various visual effects in TR3 such as vertex colouring and wave movement</li>
+  </ul>
+
+  <h4>Environment</h4>
+  <ul>
+    <li>Change water levels</li>
+    <li>Move keyholes, levers and switches</li>
+    <li>Randomize trap locations</li>
+    <li>Add extra puzzle and challenge rooms</li>
+    <li>Play mirrored levels</li>
+  </ul>
+
+  <h4>Gameplay</h4>
+  <ul>
+    <li>Change the order in which levels are played</li>
+    <li>Change the number of levels to play in a game</li>
+    <li>Change inventory text such as weapon and key names - includes 13 language options</li>
+  </ul>
+
+  <h2>Showcase</h2>
+
+  {% do attrs.set(showcase=[
+    {
+      "caption": "TR1 Rando - Caves",
+      "image": "static/rando/tr1_showcase1.jpg",
+    },
+    {
+      "caption": "TR1 Rando - Tomb of Qualopec",
+      "image": "static/rando/tr1_showcase2.jpg",
+    },
+    {
+      "caption": "TR2 Rando - Great Wall",
+      "image": "static/rando/tr2_showcase1.jpg",
+    },
+    {
+      "caption": "TR2 Rando - Floating Islands",
+      "image": "static/rando/tr2_showcase2.jpg",
+    },
+    {
+      "caption": "TR3 Rando - Temple Ruins",
+      "image": "static/rando/tr3_showcase1.jpg",
+    },
+    {
+      "caption": "TR3 Rando - Crash Site",
+      "image": "static/rando/tr3_showcase2.jpg",
+    }
+  ]) %}
+
+  <Showcase items={attrs.showcase}/>
 </Layout>
