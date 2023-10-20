@@ -93,8 +93,8 @@ h3 {
   margin: 0 0 0.5rem 0;
 }
 
-h1:first-of-type,
-h2:first-of-type {
+h1:first-child,
+h2:first-child {
   margin-top: 0;
 }
 
@@ -191,7 +191,7 @@ h2:first-of-type {
 .ProjectLogo img {
   max-height: 10rem;
 }
-.ProjectCard h2 {
+.ProjectLogo h2 {
   margin-top: 0;
 }
 
