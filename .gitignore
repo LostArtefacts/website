@@ -1,1 +1,3 @@
 /out
+/venv
+/lost_artefacts/__pycache__
