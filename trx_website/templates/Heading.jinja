@@ -1,0 +1,8 @@
+{# def level=1 #}
+{% set slug = slugify(content) %}
+<h{{ level }} class="heading" data-level="{{ level }}">
+  <a id="{{ slug }}" href="#{{ slug }}">
+    <IconSection/>
+    {{ content }}
+  </a>
+</h{{ level }}>

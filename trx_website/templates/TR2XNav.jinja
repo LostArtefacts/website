@@ -1,0 +1,8 @@
+{# def active #}
+<nav class="nav">
+  <a href="{{ url_for('tr2x_landing') }}" {% if active == 'features' %}class="active"{% endif %}>Features</a>
+  <a href="{{ url_for('tr2x_download') }}" {% if active == 'downloads' %}class="active"{% endif %}>Download</a>
+  <a href="{{ url_for('tr2x_install_guide') }}" {% if active == 'install_guide' %}class="active"{% endif %}>Installation guide</a>
+  <a href="{{ url_for('tr2x_releases') }}" {% if active == 'releases' %}class="active"{% endif %}>Release log</a>
+  <Link href="https://github.com/LostArtefacts/TRX/issues/?q=is%3Aissue%20state%3Aopen%20(label%3Atr2%20OR%20no%3Alabel)">Support</Link>
+</nav>

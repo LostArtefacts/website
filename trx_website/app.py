@@ -1,0 +1,174 @@
+from typing import Any
+
+from dotenv import load_dotenv
+from flask import Flask, abort
+
+from trx_website.settings import TRX_DOCS_DIR
+from trx_website.templating import catalog
+from trx_website.trx_docs import TRXDoc, flatten_trx_docs, get_trx_docs
+from trx_website.trx_releases import get_trx_releases
+from trx_website.utils import cache_for, get_file_listing, make_tree
+
+load_dotenv()
+app = Flask(__name__)
+
+
+catalog.jinja_env.globals.update(app.jinja_env.globals)
+catalog.jinja_env.filters.update(app.jinja_env.filters)
+
+
+@cache_for(duration=600)
+def get_global_context() -> dict[str, Any]:
+    releases = get_trx_releases()
+    tr1x_releases = [r for r in releases if "TR1X" in (r.name or "")]
+    tr2x_releases = [r for r in releases if "TR2X" in (r.name or "")]
+    prerelease = [r for r in releases if r.prerelease][0]
+    last_tr1x_release = tr1x_releases[0]
+    last_tr2x_release = tr2x_releases[0]
+    return dict(
+        tr1x_releases=tr1x_releases,
+        tr2x_releases=tr2x_releases,
+        prerelease=prerelease,
+        last_tr1x_release=last_tr1x_release,
+        last_tr2x_release=last_tr2x_release,
+        last_tr1x_video=[r for r in tr1x_releases if r.video_embed_url][
+            0
+        ].video_embed_url,
+        last_tr2x_video=[r for r in tr2x_releases if r.video_embed_url][
+            0
+        ].video_embed_url,
+        socials=dict(
+            discord="https://discord.gg/AaAnsquVxU",
+            github="https://github.com/LostArtefacts/",
+            youtube="https://www.youtube.com/@lostartefacts",
+        ),
+    )
+
+
+def _render(template: str, **kwargs: Any) -> Any:
+    return catalog.render(template, **kwargs, _globals=get_global_context())
+
+
+@app.route("/")
+def index() -> Any:
+    return _render("Home")
+
+
+@app.route("/tr1x/")
+def tr1x_landing() -> Any:
+    return _render("TR1XLanding")
+
+
+@app.route("/tr1x/download")
+def tr1x_download() -> Any:
+    return _render("TR1XDownload")
+
+
+@app.route("/tr1x/install_guide")
+def tr1x_install_guide() -> Any:
+    return _render(
+        "TR1XInstallGuide",
+        mac_file_tree=make_tree(get_file_listing("tr1x/listing_mac.txt")),
+        win_file_tree=make_tree(get_file_listing("tr1x/listing_win.txt")),
+    )
+
+
+@app.route("/tr1x/releases")
+def tr1x_releases() -> Any:
+    return _render("TR1XReleases")
+
+
+@app.route("/tr2x/")
+def tr2x_landing() -> Any:
+    return _render("TR2XLanding")
+
+
+@app.route("/tr2x/download")
+def tr2x_download() -> Any:
+    return _render("TR2XDownload")
+
+
+@app.route("/tr2x/install_guide")
+def tr2x_install_guide() -> Any:
+    return _render(
+        "TR2XInstallGuide",
+        mac_file_tree=make_tree(get_file_listing("tr2x/listing_mac.txt")),
+        win_file_tree=make_tree(get_file_listing("tr2x/listing_win.txt")),
+    )
+
+
+@app.route("/tr2x/releases")
+def tr2x_releases() -> Any:
+    return _render("TR2XReleases")
+
+
+@app.route("/rando/")
+def rando_landing() -> Any:
+    return _render("RandoLanding")
+
+
+@app.route("/trx/docs/", defaults={"branch": None, "doc_path": None})
+@app.route("/trx/docs/<branch>/", defaults={"doc_path": None})
+@app.route("/trx/docs/<branch>/<path:doc_path>")
+def trx_docs(branch: str | None, doc_path: str | None) -> Any:
+    branches = sorted([p.name for p in TRX_DOCS_DIR.iterdir() if p.is_dir()])
+    if not branches:
+        abort(404)
+    if branch is None:
+        branch = "stable" if "stable" in branches else branches[0]
+    elif branch not in branches:
+        abort(404)
+
+    # build docs tree with title/order hierarchy
+    docs_tree = get_trx_docs(branch)
+
+    doc: TRXDoc | None = None
+    docs_lookup = {d.slug: d for d in flatten_trx_docs(docs_tree)}
+    if not doc_path:
+        doc_path = list(docs_lookup.values())[0].rel_slug
+
+    slug = f"{branch}/{doc_path}"
+    doc = docs_lookup.get(slug)
+    if not doc:
+        abort(404)
+
+    return _render(
+        "TRXDocs",
+        branches=branches,
+        current_branch=branch,
+        nav=docs_tree,
+        doc=doc,
+    )
+
+
+@app.route("/about/")
+def about() -> Any:
+    return _render(
+        "About",
+        team=[
+            dict(
+                name="Dash",
+                github_profile="rr-",
+                roles=["TRX lead", "Coder", "Website fairy"],
+            ),
+            dict(
+                name="Lahm",
+                github_profile="lahm86",
+                roles=["Rando lead", "Coder", "Assets artisan"],
+            ),
+            dict(
+                name="walkawayy",
+                github_profile="walkawayy",
+                roles=["Coder", "Core Design engine wizard"],
+            ),
+            dict(
+                name="aredfan",
+                github_profile="aredfan",
+                roles=["Bug hunter", "Gameplay QA"],
+            ),
+        ],
+    )
+
+
+if __name__ == "__main__":
+    app.run(debug=True)

@@ -1,0 +1,28 @@
+{# def second_nav=None, wide=False, active=None #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lost Artefacts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='lostartefacts.png') }}"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+</head>
+<body>
+
+  <div>
+    <MainNav active={{ active }}/>
+
+    {% if second_nav %}
+      {{ second_nav }}
+    {% endif %}
+
+    <main class="outer-container main {% if wide %}wide {% endif %}">
+      {{ content }}
+    </main>
+  </div>
+
+  <Footer/>
+</body>
+</html>

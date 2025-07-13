@@ -1,0 +1,19 @@
+{# def tree, name=None, level=0, open_levels=0 #}
+{% if name %}
+<details {% if level <= open_levels %}open{% endif %}>
+  <summary>{{ name }}/</summary>
+{% endif %}
+<ul class="file-tree" data-level={{ level }}>
+  {% for key, value in tree.items() %}
+    <li>
+      {% if value %}
+        <FileTree tree={{ value }} name={{ key }} level={{ level + 1 }} open_levels={{ open_levels }}/>
+      {% else %}
+        <span>{{ key }}</span>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+{% if name %}
+</details>
+{% endif %}

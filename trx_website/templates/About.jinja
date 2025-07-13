@@ -1,0 +1,88 @@
+{# def team #}
+<Layout active="about">
+
+<div class='left-right'>
+  <img src='{{ url_for('static', filename='lostartefacts.png') }}' height='200'/>
+
+  <div class='expand'>
+    <Heading level={{ 1 }}>Who we are</Heading>
+    We're a small, passionate community of developers and creators with a deep love for the classic Tomb Raider titles. Our team builds and maintains freeware fan projects that celebrate Lara Croft's iconic adventures.
+
+    <Heading level={{ 2 }}>The core team</Heading>
+    <Card>
+      <table class='team-table no-borders'>
+        <tbody>
+          {% for person in team %}
+            <tr>
+              <td>
+                {% if person.github_profile %}
+                  <a href="https://github.com/{{ person.github_profile }}" class='link-with-icon'>
+                  <img src="https://github.com/{{ person.github_profile }}.png">
+                  {{ person.name }}
+                </a>
+                {% else %}
+                  {{ person.name }}
+                {% endif %}
+              </td>
+              <td>{{ " · ".join(person.roles) }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </Card>
+
+    <Heading level={{ 3 }}> Why "Lost Artefacts"?</Heading>
+    <p>
+      The name <em>Lost Artefacts</em> speaks to our goal: uncovering and
+      restoring the hidden brilliance of Tomb Raider's earliest adventures.
+      Later titles – especially <em>The Last Revelation</em> – have long been
+      well served by engines and tools like TRLE, TRNG, FLEP, and TE/TEN. But
+      the first three games, the very bedrock of the series, were left trailing
+      behind. With TR1X and TR2X we've begun to change that, giving these
+      classics the attention and polish they've always deserved.
+    </p>
+    <p>
+      And one day, when we turn our focus to Tomb Raider III and its <em>Lost
+      Artifact</em> expansion, the circle will close: three legendary journeys
+      standing side by side, fully restored, enhanced, and shining as brightly
+      as the memories that keep them alive.
+    </p>
+
+    <Heading level={{ 2 }}>Social media</Heading>
+    <Card>
+      <ul class='no-bullets'>
+        <li class="social">
+          <Link external={{ false }} href={{ socials.discord }} icon={{ catalog.irender('IconDiscord') }}>
+            Hang around on Discord
+          </Link>
+        </li>
+        <li class="social">
+          <Link external={{ false }} href={{ socials.github }} icon={{ catalog.irender('IconGitHub') }}>
+            Code and report bugs on GitHub
+          </Link>
+        </li>
+        <li class="social">
+          <Link external={{ false }} href={{ socials.youtube }} icon={{ catalog.irender('IconYouTube') }}>
+            Watch latest releases on YouTube
+          </Link>
+        </li>
+      </ul>
+    </Card>
+
+    <Heading level={{ 1 }}>Join us</Heading>
+    <p>We're always looking for:</p>
+    <ul>
+      <li>🎮 Play testers with sharp eyes for secrets</li>
+      <li>💻 Programmers who thrive on solving tricky puzzles</li>
+      <li>🎨 Artists &amp; designers with visions as bold as Lara herself</li>
+    </ul>
+
+    <p>
+      If that sounds like you, come say hi on our <a href="{{ socials.discord }}">Discord</a>!<br/>
+      Running a fan project on your own? We'd love to host you under the Lost Artefacts umbrella.
+    </p>
+
+  </div>
+</div>
+
+</Layout>
