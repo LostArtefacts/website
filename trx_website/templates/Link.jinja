@@ -1,0 +1,10 @@
+{# def href, icon=None, external=True #}
+<a href="{{ href }}" class="link-with-icon">
+  {% if icon %}{{ icon }}{% endif %}
+  <span class="external-link">
+    {{ content or href }}
+    {% if external %}
+      <IconExternalLink/>
+    {% endif %}
+  </span>
+</a>

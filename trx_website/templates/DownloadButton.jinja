@@ -1,0 +1,17 @@
+{# def release #}
+{% set unique_id = unique_id() %}
+<div class="btn-group" role="group">
+  <button type="button" class="btn btn-primary dropdown-toggle" popovertarget="{{ unique_id }}">
+    Download
+  </button>
+  <ul class="dropdown-menu" popover id="{{ unique_id }}">
+    {% for asset in release.assets %}
+    <li>
+      <a class="dropdown-item" href="{{ asset.download_url }}">
+        <IconPlatform platform={{ asset.platform }}/>
+        {{ asset.name }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</div>

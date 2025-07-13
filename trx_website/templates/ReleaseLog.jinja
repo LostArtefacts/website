@@ -1,0 +1,9 @@
+{# def releases #}
+<ul class='releases'>
+  {% for release in releases %}
+    <li>
+      <strong>{{ release.name }}</strong> · published on {{ release.published_at|format_datetime }}
+      <div class="markdown">{{ release.body|markdown }}</div>
+    </li>
+  {% endfor %}
+</ul>

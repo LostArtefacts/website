@@ -1,0 +1,58 @@
+<TR2XBase active='downloads'>
+  <Heading level={{ 1 }}>Downloads</Heading>
+
+  <Heading level={{ 2 }}>Latest stable version</Heading>
+
+  <Card>
+    <ul class='download-links no-bullets'>
+      {% for asset in last_tr2x_release.assets %}
+        <li>
+          <DownloadLink asset={{ asset }}/>
+        </li>
+      {% endfor %}
+    </ul>
+  </Card>
+
+  <div class='downloads-video'>
+    <Video video_url={{ last_tr2x_video }} />
+  </div>
+
+  <Heading level={{ 2 }}>Development snapshots</Heading>
+
+  <em>
+    Cutting‑edge features, but may be less stable.
+  </em>
+
+  <Card>
+    <ul class='download-links no-bullets'>
+      {% for asset in prerelease.assets %}
+        {% if "TR2X" in asset.name %}
+          <li>
+            <DownloadLink asset={{ asset }}/>
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </Card>
+
+  <p>
+    Development snapshots don't include large assets (images, music) to save
+    bandwidth. Download them separately below.
+  </p>
+
+  <Card>
+    <ul class='download-links bullets-inside'>
+      <li><Link href="https://lostartefacts.dev/aux/tr2x/main.zip">Main assets</Link></li>
+      <li><Link href="https://lostartefacts.dev/aux/tr2x/music.zip">Music files</Link></li>
+      <li><Link href="https://lostartefacts.dev/aux/tr2x/trgm.zip">TR: The Golden Mask</Link></li>
+    </ul>
+  </Card>
+
+  <Heading>What's next?</Heading>
+  <p>
+    TR2X needs the original game's assets to run.<br/>
+    <a href="{{ url_for('tr2x_install_guide') }}">Follow our installation guide</a>
+    to get set up and start exploring!
+  </p>
+
+</TR2XBase>

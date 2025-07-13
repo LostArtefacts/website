@@ -1,0 +1,40 @@
+[project]
+name = "jinjax-demo-site"
+version = "0.1.0"
+requires-python = '>= 3.12'
+description = "A simple website demo using Jinjax and Astral UV"
+authors = [
+  { name = "Your Name", email = "you@example.com" },
+]
+
+dependencies = [
+  "jinjax",
+  "flask",
+  "jinja2",
+  "python-dotenv",
+  "pygithub>=2.6.1",
+  "markdown>=3.8.2",
+  "gitpython>=3.1.44",
+  "marko>=2.1.4",
+]
+
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.uv]
+package = true
+
+[tool.black]
+line-length = 79
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+known_first_party = ["authenticator", "launcher"]
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+disallow_subclassing_any = false

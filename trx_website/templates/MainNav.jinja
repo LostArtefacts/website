@@ -1,0 +1,15 @@
+{# def active=None #}
+<div class="main-nav">
+  <div class="container">
+    <nav>
+      <a href="{{ url_for('index') }}" {% if active == 'home' %}class="active"{% endif %}>
+        <img src='{{ url_for('static', filename='lostartefacts.png') }}' height="24"/> Home
+      </a>
+      <a href="{{ url_for('tr1x_landing') }}" {% if active == 'tr1x' %}class="active"{% endif %}>TR1X</a>
+      <a href="{{ url_for('tr2x_landing') }}" {% if active == 'tr2x' %}class="active"{% endif %}>TR2X</a>
+      <a href="{{ url_for('trx_docs') }}" {% if active == 'trx_docs' %}class="active"{% endif %}>TRX Docs</a>
+      <a href="{{ url_for('rando_landing') }}" {% if active == 'rando' %}class="active"{% endif %}>Rando</a>
+      <a href="{{ url_for('about') }}" {% if active == 'about' %}class="active"{% endif %}>About</a>
+    </nav>
+  </div>
+</div>

@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.py[cod]
+.env
+trx_website/cache/
+trx_website/trx_docs/

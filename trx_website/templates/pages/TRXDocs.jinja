@@ -1,0 +1,47 @@
+{# def branches, current_branch, nav, doc #}
+<Layout active='trx_docs' wide={{ true }}>
+  <div class="docs-container">
+    <aside class="docs-sidebar">
+      <div class="branch-selector" style="margin-bottom: 1rem;">
+        <label for="branch-select">Branch:</label>
+        <select id="branch-select" onchange="location.href=this.value">
+          {% for branch in branches %}
+            <option value="{{ url_for('trx_docs', branch=branch) }}" {% if branch == current_branch %}selected{% endif %}>
+              {{ branch }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {% macro render_nav(docs_list) -%}
+      <ul style="list-style: none; padding-left: 0;">
+        {% for nav_doc in docs_list %}
+          {% set rel = nav_doc.rel_slug %}
+          <li>
+            {% if nav_doc.content %}
+              <a href="{{ url_for('trx_docs', branch=current_branch, doc_path=rel) }}" {% if nav_doc == doc %}class="active"{% endif %}>
+                {{ nav_doc.title }}
+              </a>
+            {% else %}
+              <span {% if nav_doc == doc %}class="active"{% endif %}>{{ nav_doc.title }}</span>
+            {% endif %}
+            {% if nav_doc.children %}
+              {{ render_nav(nav_doc.children) }}
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+      {%- endmacro %}
+
+      {{ render_nav(nav) }}
+    </aside>
+
+    <section class="docs-content" style="flex: 1;">
+      {% if doc %}
+        <div class="markdown">{{ doc.content|markdown }}</div>
+      {% else %}
+        <p>Select a document from the navigation on the left.</p>
+      {% endif %}
+    </section>
+  </div>
+</Layout>
