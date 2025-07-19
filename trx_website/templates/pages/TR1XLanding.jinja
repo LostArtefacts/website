@@ -35,6 +35,55 @@
   </Showcase>
 </section>
 
+<section>
+  <Heading level={{ 1 }}>Before & After</Heading>
+  <div class="ba-slider">
+    <img src="{{ url_for('static', filename='tr1x/showcase/3d_pickups_before.jpg') }}" alt="3D pickups – before" />
+    <div class="resize">
+      <img src="{{ url_for('static', filename='tr1x/showcase/3d_pickups_after.jpg') }}" alt="3D pickups – after" />
+    </div>
+    <span class="handle"></span>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.ba-slider').forEach(function(slider) {
+        var handle = slider.querySelector('.handle');
+        var resize = slider.querySelector('.resize');
+        var dragging = false;
+        var sliderRect;
+
+        function startDrag(e) {
+          dragging = true;
+          sliderRect = slider.getBoundingClientRect();
+          e.preventDefault();
+        }
+
+        function stopDrag() {
+          dragging = false;
+        }
+
+        function onDrag(e) {
+          if (!dragging) return;
+          var pageX = e.pageX || (e.touches && e.touches[0].pageX);
+          var posX = pageX - sliderRect.left - window.scrollX;
+          posX = Math.max(0, Math.min(posX, sliderRect.width));
+          var percent = (posX / sliderRect.width) * 100;
+          resize.style.width = percent + '%';
+          handle.style.left = percent + '%';
+        }
+
+        handle.addEventListener('mousedown', startDrag);
+        handle.addEventListener('touchstart', startDrag);
+        window.addEventListener('mouseup', stopDrag);
+        window.addEventListener('touchend', stopDrag);
+        window.addEventListener('mousemove', onDrag);
+        window.addEventListener('touchmove', onDrag);
+      });
+    });
+  </script>
+
+</section>
+
 <p>
   <strong>
     Return to where it all began.<br/>
