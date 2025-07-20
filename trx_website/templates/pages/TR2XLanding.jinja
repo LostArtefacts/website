@@ -26,6 +26,32 @@
   </ul>
 </section>
 
+<section>
+  <Heading level={{ 1 }}>Before & After</Heading>
+  <Showcase>
+    <ShowcaseItem
+        before={{ url_for('static', filename='tr2x/showcase/3d_pickups_before.jpg') }}
+        after={{ url_for('static', filename='tr2x/showcase/3d_pickups_after.jpg') }}>
+      3D pickups
+    </ShowcaseItem>
+    <ShowcaseItem
+        before={{ url_for('static', filename='tr2x/showcase/draw_distance_before.jpg') }}
+        after={{ url_for('static', filename='tr2x/showcase/draw_distance_after.jpg') }}>
+      Draw distances
+    </ShowcaseItem>
+    <ShowcaseItem
+        before={{ url_for('static', filename='tr2x/showcase/stats_before.png') }}
+        after={{ url_for('static', filename='tr2x/showcase/stats_after.jpg') }}>
+      Stats
+    </ShowcaseItem>
+    <ShowcaseItem
+        before={{ url_for('static', filename='tr2x/showcase/bars_before.png') }}
+        after={{ url_for('static', filename='tr2x/showcase/bars_after.png') }}>
+      Improved UI
+    </ShowcaseItem>
+  </Showcase>
+</section>
+
 <p>
   <strong>Ready to dive back into the depths of Lara's second adventure?<br>
   Head over to <a href="{{url_for('tr2x_download') }}">downloads</a> and gear up for TR2X.</strong>
