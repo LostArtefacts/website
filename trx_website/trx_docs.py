@@ -219,7 +219,7 @@ def get_trx_docs(branch: str) -> list[TRXDoc]:
     return sorted(roots, key=lambda d: d.path)
 
 
-def main() -> None:
+def sync_trx_docs() -> None:
     repo_url = (
         f"https://github.com/{GITHUB_ORGANIZATION}/{TRX_GITHUB_REPOSITORY}.git"
     )
@@ -236,4 +236,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    sync_trx_docs()

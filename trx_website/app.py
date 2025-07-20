@@ -1,12 +1,17 @@
 from typing import Any
 
 from dotenv import load_dotenv
-from flask import Flask, abort
+from flask import Flask, abort, request
 
 from trx_website.settings import TRX_DOCS_DIR
 from trx_website.templating import catalog
-from trx_website.trx_docs import TRXDoc, flatten_trx_docs, get_trx_docs
-from trx_website.trx_releases import get_trx_releases
+from trx_website.trx_docs import (
+    TRXDoc,
+    flatten_trx_docs,
+    get_trx_docs,
+    sync_trx_docs,
+)
+from trx_website.trx_releases import get_trx_releases, sync_trx_releases
 from trx_website.utils import cache_for, get_file_listing, make_tree
 
 load_dotenv()
@@ -168,6 +173,19 @@ def about() -> Any:
             ),
         ],
     )
+
+
+@app.route("/webhook/", methods=["GET", "PUT", "POST"])
+def webhook() -> Any:
+    if request.headers.get("X-GitHub-Event") == "release":
+        sync_trx_releases()
+        return {"message": "updated releases"}, 200
+    elif request.headers.get("X-GitHub-Event") == "push" and request.json.get(
+        "ref"
+    ) in ["stable", "refs/heads/stable", "develop", "refs/heads/develop"]:
+        sync_trx_docs()
+        return {"message": "updated docs"}, 200
+    return {}, 200
 
 
 if __name__ == "__main__":
