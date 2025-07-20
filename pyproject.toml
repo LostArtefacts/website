@@ -16,6 +16,7 @@ dependencies = [
   "markdown>=3.8.2",
   "gitpython>=3.1.44",
   "marko>=2.1.4",
+  "gunicorn>=23.0.0",
 ]
 
 
