@@ -1,7 +1,14 @@
-{# def image #}
+{# def image=None, before=None, after=None #}
 <li>
-  <a href='{{ image }}'>
-    <img src='{{ image }}' alt='{{ content }}'/>
-    <span>{{ content }}</span>
-  </a>
+  {% if image %}
+    <a href='{{ image or after }}'>
+      <img src='{{ image }}' alt='{{ content }}'/>
+      <span class='label'>{{ content }}</span>
+    </a>
+  {% else %}
+    <BeforeAfter before={{ before }} after={{ after }}/>
+    <a href='{{ image or after }}'>
+      <span class='label'>{{ content }}</span>
+    </a>
+  {% endif %}
 </li>
