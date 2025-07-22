@@ -722,7 +722,7 @@ pre {
       margin-left: 1rem;
     }
   }
-  a, span {
+  li>a, li>span, p>a {
     display: block;
     padding: 0.2rem 0.5rem;
   }

@@ -3,9 +3,13 @@ from typing import Any
 from dotenv import load_dotenv
 from flask import Flask, abort, request, url_for
 
-from trx_website.settings import TRX_DOCS_DIR
 from trx_website.templating import catalog
-from trx_website.trx_docs import get_trx_docs, make_docs_nav, sync_trx_docs
+from trx_website.trx_docs import (
+    get_trx_doc_branches,
+    get_trx_docs,
+    make_docs_nav,
+    sync_trx_docs,
+)
 from trx_website.trx_releases import get_trx_releases, sync_trx_releases
 from trx_website.utils import cache_for
 
@@ -69,12 +73,12 @@ def tr1x_download() -> Any:
 @app.route("/tr1x/install_guide/<branch>/", defaults={"version": "tr1"})
 @app.route("/tr2x/install_guide/<branch>/", defaults={"version": "tr2"})
 def trx_install_guide(branch: str, version: str) -> Any:
-    branches = sorted([p.name for p in TRX_DOCS_DIR.iterdir() if p.is_dir()])
-    if not branches:
+    branch_names = list(get_trx_doc_branches().keys())
+    if not branch_names:
         abort(404)
     if branch is None:
-        branch = "stable" if "stable" in branches else branches[0]
-    elif branch not in branches:
+        branch = "stable" if "stable" in branch_names else branch_names[0]
+    elif branch not in branch_names:
         abort(404)
 
     # build docs tree with title/order hierarchy
@@ -91,7 +95,7 @@ def trx_install_guide(branch: str, version: str) -> Any:
         doc=doc,
         branches={
             b: url_for("trx_install_guide", version=version, branch=b)
-            for b in branches
+            for b in branch_names
         },
         current_branch=branch,
     )
@@ -126,12 +130,13 @@ def rando_landing() -> Any:
 @app.route("/trx/docs/<branch>/", defaults={"doc_path": None})
 @app.route("/trx/docs/<branch>/<path:doc_path>")
 def trx_docs(branch: str | None, doc_path: str | None) -> Any:
-    branches = sorted([p.name for p in TRX_DOCS_DIR.iterdir() if p.is_dir()])
-    if not branches:
+    branches = get_trx_doc_branches()
+    branch_names = list(branches.keys())
+    if not branch_names:
         abort(404)
     if branch is None:
-        branch = "stable" if "stable" in branches else branches[0]
-    elif branch not in branches:
+        branch = "stable" if "stable" in branch_names else branch_names[0]
+    elif branch not in branch_names:
         abort(404)
 
     # build docs tree with title/order hierarchy
@@ -145,7 +150,8 @@ def trx_docs(branch: str | None, doc_path: str | None) -> Any:
 
     return _render(
         "TRXDocs",
-        branches={b: url_for("trx_docs", branch=b) for b in branches},
+        branches={b: url_for("trx_docs", branch=b) for b in branch_names},
+        commit_sha=branches[branch].commit_sha,
         current_branch=branch,
         nav=make_docs_nav(docs),
         doc=doc,

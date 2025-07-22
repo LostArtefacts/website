@@ -28,6 +28,12 @@ IGNORED_FILES: list[str] = [
 
 
 @dataclass
+class Branch:
+    name: str
+    commit_sha: str
+
+
+@dataclass
 class TRXDoc:
     branch: str
     path: Path
@@ -106,11 +112,13 @@ class TRXDoc:
 
 
 @contextmanager
-def clone_repo(repo_url: str, branch_name: str) -> Iterator[Path]:
+def clone_repo(repo_url: str, branch_name: str) -> Iterator[tuple[Path, Repo]]:
     with tempfile.TemporaryDirectory() as tmpdirname:
         cloned_repo_dir = Path(tmpdirname)
-        Repo.clone_from(repo_url, cloned_repo_dir, branch=branch_name, depth=1)
-        yield cloned_repo_dir
+        repo = Repo.clone_from(
+            repo_url, cloned_repo_dir, branch=branch_name, depth=1
+        )
+        yield cloned_repo_dir, repo
 
 
 def copy_md_files(source_dir: Path, target_dir: Path) -> None:
@@ -170,6 +178,15 @@ def postprocess(doc: TRXDoc, all_docs: list[TRXDoc]) -> None:
     )
 
 
+def get_trx_doc_branches() -> dict[str, Branch]:
+    return {
+        dir.name: Branch(
+            name=dir.name, commit_sha=(dir / "head.txt").read_text()
+        )
+        for dir in sorted([p for p in TRX_DOCS_DIR.iterdir() if p.is_dir()])
+    }
+
+
 def get_trx_docs(branch: str) -> dict[str, TRXDoc]:
     """
     Scan the local TRX docs directory for a given branch and build
@@ -227,9 +244,10 @@ def sync_trx_docs() -> None:
         shutil.rmtree(base_target_dir)
     for branch_name in branches:
         target_dir = base_target_dir / branch_name
-        with clone_repo(repo_url, branch_name) as cloned_repo_dir:
-            docs_dir = cloned_repo_dir / "docs"
+        with clone_repo(repo_url, branch_name) as (repo_dir, repo):
+            docs_dir = repo_dir / "docs"
             copy_md_files(docs_dir, target_dir)
+            (target_dir / "head.txt").write_text(repo.head.commit.hexsha)
 
 
 if __name__ == "__main__":
