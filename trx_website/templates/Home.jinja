@@ -1,5 +1,6 @@
 <Layout wide={{ true }} active="home">
-  <section class="hero left" style="background-image: url('{{ url_for('static', filename='tr1x/hero.png') }}')">
+  <section class="hero left">
+    <div class="hero-content-image" style="background-image: url('{{ url_for('static', filename='tr1x/hero.png') }}')"></div>
     <div class="hero-content-wrapper">
       <div class="hero-content">
         <a href="{{ url_for('tr1x_landing') }}"><img class="logo" src="{{ url_for('static', filename='tr1x/logo.png') }}"></a>
@@ -15,13 +16,16 @@
           <li>Cross platform</li>
         </ul>
 
-        <DownloadButton release={{last_tr1x_release}}/>
-        <a href="{{ url_for('tr1x_landing') }}" role="button" class="btn btn-outline-primary">Learn more</a>
+        <div class='btn-group'>
+          <DownloadButton release={{last_tr1x_release}}/>{#
+          #}<a href="{{ url_for('tr1x_landing') }}" role="button" class="btn btn-outline-primary">Learn more</a>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="hero right" style="background-image: url('{{ url_for('static', filename='tr2x/hero.webp') }}')">
+  <section class="hero right">
+    <div class="hero-content-image" style="background-image: url('{{ url_for('static', filename='tr2x/hero.webp') }}')"></div>
     <div class="hero-content-wrapper">
       <div class="hero-content">
         <a href="{{ url_for('tr2x_landing') }}"><img class="logo" src="{{ url_for('static', filename='tr2x/logo.png') }}"></a>

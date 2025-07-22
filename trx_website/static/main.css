@@ -135,33 +135,63 @@ ol, ul {
 
 .hero {
   border-radius: var(--border-radius) var(--border-radius) 0 0;
-  background-size: contain;
-  background-repeat: no-repeat;
   margin-bottom: 4rem;
-  &.left {
-    background-position: right;
-    .hero-content-wrapper {
-      height: 100%;
+  position: relative;
+
+  @media (min-width: 1200px) {
+    .hero-content-image {
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: var(--background-position);
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      z-index: -1;
     }
     .hero-content {
-      background-image: linear-gradient(100deg, var(--bg) 80%, transparent 80.1%);
-      padding-right: 8rem;
+      padding-left: var(--padding-left-size);
+      padding-right: var(--padding-right-size);
     }
-  }
-  &.right {
-    background-position: left;
-    .hero-content-wrapper {
-      height: 100%;
+    &.left {
+      --padding-right-size: 8rem;
+      --background-position: right;
       .hero-content {
-        justify-self: end;
-        align-self: end;
+        background-image: linear-gradient(100deg, var(--bg) 80%, transparent 80.1%);
       }
     }
-    .hero-content {
-      background-image: linear-gradient(100deg, transparent 20%, var(--bg) 20.1%);
-      padding-left: 12rem;
+    &.right {
+      --padding-left-size: 12rem;
+      --background-position: left;
+      .hero-content-wrapper {
+        .hero-content {
+          justify-self: end;
+          align-self: end;
+        }
+      }
+      .hero-content {
+        background-image: linear-gradient(100deg, transparent 20%, var(--bg) 20.1%);
+      }
     }
   }
+
+  @media (max-width: 1199px) {
+    .hero-content-image {
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: var(--background-position);
+      width: 100%;
+      aspect-ratio: 16/9;
+      margin-bottom: 1rem;
+    }
+  }
+
+
+  .hero-content-wrapper {
+    height: 100%;
+  }
+
   .hero-content {
     max-width: 30rem;
     h1 {
@@ -175,10 +205,12 @@ ol, ul {
 }
 
 .btn-group {
-  border-radius: var(--bs-border-radius);
+  --btn-group-gap: 8px;
   display: inline-flex;
+  gap: var(--btn-group-gap);
   &>.btn {
     flex: 1 1 auto;
+    margin-bottom: var(--btn-group-gap);
   }
 }
 
@@ -677,6 +709,9 @@ pre {
 
 .docs-container {
   display: flex;
+  @media (max-width: 799px) {
+    flex-direction: column;
+  }
   gap: 2rem;
 }
 .docs-sidebar {
