@@ -1,7 +1,7 @@
 from typing import Any
 
 from dotenv import load_dotenv
-from flask import Flask, abort, request
+from flask import Flask, abort, request, url_for
 
 from trx_website.settings import TRX_DOCS_DIR
 from trx_website.templating import catalog
@@ -89,6 +89,11 @@ def trx_install_guide(branch: str, version: str) -> Any:
             "tr2": "TR2XInstallGuide",
         }[version],
         doc=doc,
+        branches={
+            b: url_for("trx_install_guide", version=version, branch=b)
+            for b in branches
+        },
+        current_branch=branch,
     )
 
 
@@ -140,7 +145,7 @@ def trx_docs(branch: str | None, doc_path: str | None) -> Any:
 
     return _render(
         "TRXDocs",
-        branches=branches,
+        branches={b: url_for("trx_docs", branch=b) for b in branches},
         current_branch=branch,
         nav=make_docs_nav(docs),
         doc=doc,

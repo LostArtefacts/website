@@ -2,19 +2,10 @@
 <Layout active='trx_docs' wide={{ true }}>
   <div class="docs-container">
     <aside class="docs-sidebar">
-      <div class="branch-selector" style="margin-bottom: 1rem;">
-        <label for="branch-select">Branch:</label>
-        <select id="branch-select" onchange="location.href=this.value">
-          {% for branch in branches %}
-            <option value="{{ url_for('trx_docs', branch=branch) }}" {% if branch == current_branch %}selected{% endif %}>
-              {{ branch }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
+      <BranchSelector branches={{ branches }} current_branch={{ current_branch }}/>
 
       {% macro render_nav(docs_list) -%}
-      <ul style="list-style: none; padding-left: 0;">
+      <ul class="no-bullets">
         {% for nav_doc in docs_list %}
           {% set rel = nav_doc.rel_slug %}
           <li>
