@@ -1,10 +1,14 @@
+import re
 from typing import Any, cast
 
 from marko import Markdown, block, inline
+from marko.block import HTMLBlock
 from marko.ext.gfm import GFM
-from marko.helpers import MarkoExtension, render_dispatch
+from marko.helpers import MarkoExtension
 from marko.html_renderer import HTMLRenderer
-from marko.md_renderer import MarkdownRenderer
+from marko.source import Source
+
+from trx_website.utils import make_tree, parse_fancy_tree
 
 
 def render_jinjax(element: str, **ctx: Any) -> str:
@@ -13,6 +17,19 @@ def render_jinjax(element: str, **ctx: Any) -> str:
     from trx_website.templating import catalog
 
     return cast(str, catalog.irender(element, **ctx))
+
+
+class FileTreeBlock(HTMLBlock):
+    priority = 6
+
+    @classmethod
+    def match(cls, source: Source) -> int | bool:
+        source.context.html_end = None
+        if source.expect_re(r"(?i) {,3}<details data-id=\"file-tree.*\">"):
+            assert source.match
+            source.context.html_end = re.compile(r"(?i)</details>")
+            return 1
+        return False
 
 
 class Alert(block.Quote):
@@ -45,26 +62,26 @@ class Alert(block.Quote):
 
 
 class AlertRendererMixin:
-    @render_dispatch(HTMLRenderer)
-    def render_alert(self, element):
+    def render_alert(self, element: Alert) -> str:
         return render_jinjax(
             "Note",
             variant=element.alert_type.lower(),
-            _content=self.render_children(element),
+            _content=self.render_children(element),  # type: ignore[attr-defined]
         )
-
-    @render_alert.dispatch(MarkdownRenderer)  # type: ignore[no-redef]
-    def render_alert(self, element):
-        lines: list[str] = []
-        lines.append(self._prefix + f"> [!{element.alert_type}]\n")
-        with self.container("> ", "> "):
-            for child in element.children:
-                lines.append(self.render(child))
-        self._prefix = self._second_prefix
-        return "".join(lines)
 
 
 class TRXRendererMixin:
+    def render_file_tree_block(self, element: FileTreeBlock) -> str:
+        fancy_tree_str: str = re.sub(
+            "</?(pre|code|details)[^>]*>", "", element.body.strip()
+        )
+        paths = parse_fancy_tree(fancy_tree_str)
+        return render_jinjax(
+            "FileTree",
+            tree=make_tree(paths),
+            open_levels=2 if "file-tree-mac" in element.body else 1,
+        )
+
     def render_link(self, element: inline.AutoLink) -> str:
         content: str = self.render_children(element)  # type: ignore[attr-defined]
         url: str = self.escape_url(element.dest)  # type: ignore[attr-defined]
@@ -89,7 +106,7 @@ class TRXRendererMixin:
 
 def make_gfm_extra_extension() -> MarkoExtension:
     return MarkoExtension(
-        elements=[Alert],
+        elements=[Alert, FileTreeBlock],
         renderer_mixins=[AlertRendererMixin],
     )
 

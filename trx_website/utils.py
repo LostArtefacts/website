@@ -5,6 +5,46 @@ from functools import wraps
 from typing import Any, TypeVar
 
 
+def parse_fancy_tree(tree_str: str) -> Iterable[str]:
+    lines = tree_str.splitlines()
+    result = []
+    stack: list[str] = []
+
+    for i, raw_line in enumerate(lines):
+        line = raw_line.rstrip()
+        if not line.strip():
+            continue
+        if "──" not in line:
+            continue
+
+        # get name
+        name = line.split("──", 1)[1].strip()
+
+        # calculate depth
+        prefix = line.split("──", 1)[0]
+        depth = len(prefix) // 4
+
+        # trim stack
+        stack = stack[:depth]
+
+        # look ahead: is next line deeper?
+        is_dir = False
+        if i + 1 < len(lines):
+            nxt = lines[i + 1]
+            if "──" in nxt:
+                nxt_prefix = nxt.split("──", 1)[0]
+                nxt_depth = len(nxt_prefix) // 4
+                if nxt_depth > depth:
+                    is_dir = True
+
+        if is_dir:
+            stack.append(name)  # push dir onto stack
+        else:
+            result.append("./" + "/".join(stack + [name]))
+
+    return result
+
+
 def make_tree(
     paths: Iterable[str], strip_prefix: str | None = None
 ) -> dict[str, Any]:
