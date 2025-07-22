@@ -1,3 +1,0 @@
-./{listing_og}
-./{listing_self}
-./TR1X.exe

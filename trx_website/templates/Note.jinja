@@ -1,13 +1,14 @@
 {# def variant #}
-<div class="note {{ variant }}">
-  {% set icon, title = {
-      'warning':   ('IconDanger', 'Warning'),
-      'info':      ('IconInfo', 'Note'),
-      'caution':   ('IconStop', 'Caution'),
-      'important': ('IconMessageExclamation', 'Important'),
-      'tip':       ('IconLightbulb', 'Tip'),
-    }.get(variant, (None, None))
-  %}
+{% set icon, title, cls = {
+    'warning':   ('IconDanger', 'Warning', 'warning'),
+    'note':      ('IconInfo', 'Note', 'info'),
+    'info':      ('IconInfo', 'Note', 'info'),
+    'caution':   ('IconStop', 'Caution', 'caution'),
+    'important': ('IconMessageExclamation', 'Important', 'important'),
+    'tip':       ('IconLightbulb', 'Tip', 'tip'),
+  }.get(variant, (None, None, ''))
+%}
+<div class="note {{ cls }}">
   {% if icon or title %}
     <div class='header'>
       {% if icon %}
