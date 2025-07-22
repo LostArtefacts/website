@@ -1,7 +1,0 @@
-./Contents/_CodeSignature
-./Contents/Framworks
-./Contents/info.plist
-./Contents/MacOS
-./Contents/Resources/{listing_og}
-./Contents/Resources/{listing_self}
-./Contents/Resources/icon.icns

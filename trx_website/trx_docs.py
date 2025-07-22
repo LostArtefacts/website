@@ -143,7 +143,7 @@ def postprocess(doc: TRXDoc, all_docs: list[TRXDoc]) -> None:
         file_path = (doc.path.parent / link).resolve()
         if linked_doc := docs_lookup.get(file_path):
             link = f"/trx/docs/{linked_doc.slug}"
-        else:
+        elif not link.startswith("https://"):
             print("Warning: unknown link", link, match.group("hash"))
         if link_hash := match.group("hash"):
             link += f'#{link_hash.lstrip("#")}'
@@ -170,14 +170,7 @@ def postprocess(doc: TRXDoc, all_docs: list[TRXDoc]) -> None:
     )
 
 
-def flatten_trx_docs(docs_list: list[TRXDoc]) -> Iterator[TRXDoc]:
-    """Flatten the TRXDoc tree."""
-    for d in docs_list:
-        yield d
-        yield from flatten_trx_docs(d.children)
-
-
-def get_trx_docs(branch: str) -> list[TRXDoc]:
+def get_trx_docs(branch: str) -> dict[str, TRXDoc]:
     """
     Scan the local TRX docs directory for a given branch and build
     a tree of TRXDoc objects, sorted by their path.
@@ -185,22 +178,29 @@ def get_trx_docs(branch: str) -> list[TRXDoc]:
     """
     branch_dir = TRX_DOCS_DIR / branch
     if not branch_dir.exists():
-        return []
+        return {}
 
     # collect all docs keyed by their slug path segments tuple
-    docs_by_key: dict[tuple[str, ...], TRXDoc] = {}
+    docs_by_key: dict[str, TRXDoc] = {}
     for md_file in sorted(branch_dir.rglob("*.md")):
         rel = md_file.relative_to(branch_dir)
         if str(rel) in IGNORED_FILES:
             continue
         doc = TRXDoc.from_file(md_file, branch=branch)
-        key = tuple(doc.rel_slug.split("/"))
-        docs_by_key[key] = doc
+        docs_by_key[doc.rel_slug] = doc
 
+    all_docs = list(docs_by_key.values())
+    for doc in all_docs:
+        postprocess(doc, all_docs)
+
+    return docs_by_key
+
+
+def make_docs_nav(docs_by_key: dict[str, TRXDoc]) -> list[TRXDoc]:
     # build parent-child relationships
-    children_map: dict[tuple[str, ...], list[TRXDoc]] = defaultdict(list)
+    children_map: dict[str, list[TRXDoc]] = defaultdict(list)
     for key, doc in docs_by_key.items():
-        parent_key = key[:-1]
+        parent_key = "/".join(key.split("/")[:-1])
         children_map[parent_key].append(doc)
 
     # attach sorted children to each doc
@@ -210,10 +210,7 @@ def get_trx_docs(branch: str) -> list[TRXDoc]:
         for child in children:
             child.parent = doc
 
-    roots = children_map.get(tuple(), [])
-    all_docs = list(flatten_trx_docs(roots))
-    for doc in all_docs:
-        postprocess(doc, all_docs)
+    roots = children_map.get("", [])
 
     # return the root-level docs
     return sorted(roots, key=lambda d: d.path)

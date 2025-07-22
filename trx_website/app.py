@@ -5,14 +5,9 @@ from flask import Flask, abort, request
 
 from trx_website.settings import TRX_DOCS_DIR
 from trx_website.templating import catalog
-from trx_website.trx_docs import (
-    TRXDoc,
-    flatten_trx_docs,
-    get_trx_docs,
-    sync_trx_docs,
-)
+from trx_website.trx_docs import get_trx_docs, make_docs_nav, sync_trx_docs
 from trx_website.trx_releases import get_trx_releases, sync_trx_releases
-from trx_website.utils import cache_for, get_file_listing, make_tree
+from trx_website.utils import cache_for
 
 load_dotenv()
 app = Flask(__name__)
@@ -69,12 +64,31 @@ def tr1x_download() -> Any:
     return _render("TR1XDownload")
 
 
-@app.route("/tr1x/install_guide")
-def tr1x_install_guide() -> Any:
+@app.route("/tr1x/install_guide/", defaults={"branch": None, "version": "tr1"})
+@app.route("/tr2x/install_guide/", defaults={"branch": None, "version": "tr2"})
+@app.route("/tr1x/install_guide/<branch>/", defaults={"version": "tr1"})
+@app.route("/tr2x/install_guide/<branch>/", defaults={"version": "tr2"})
+def trx_install_guide(branch: str, version: str) -> Any:
+    branches = sorted([p.name for p in TRX_DOCS_DIR.iterdir() if p.is_dir()])
+    if not branches:
+        abort(404)
+    if branch is None:
+        branch = "stable" if "stable" in branches else branches[0]
+    elif branch not in branches:
+        abort(404)
+
+    # build docs tree with title/order hierarchy
+    docs = get_trx_docs(branch)
+    doc = docs.get(f"{version}/installing")
+    if not doc:
+        abort(404)
+
     return _render(
-        "TR1XInstallGuide",
-        mac_file_tree=make_tree(get_file_listing("tr1x/listing_mac.txt")),
-        win_file_tree=make_tree(get_file_listing("tr1x/listing_win.txt")),
+        {
+            "tr1": "TR1XInstallGuide",
+            "tr2": "TR2XInstallGuide",
+        }[version],
+        doc=doc,
     )
 
 
@@ -91,15 +105,6 @@ def tr2x_landing() -> Any:
 @app.route("/tr2x/download")
 def tr2x_download() -> Any:
     return _render("TR2XDownload")
-
-
-@app.route("/tr2x/install_guide")
-def tr2x_install_guide() -> Any:
-    return _render(
-        "TR2XInstallGuide",
-        mac_file_tree=make_tree(get_file_listing("tr2x/listing_mac.txt")),
-        win_file_tree=make_tree(get_file_listing("tr2x/listing_win.txt")),
-    )
 
 
 @app.route("/tr2x/releases")
@@ -125,15 +130,11 @@ def trx_docs(branch: str | None, doc_path: str | None) -> Any:
         abort(404)
 
     # build docs tree with title/order hierarchy
-    docs_tree = get_trx_docs(branch)
+    docs = get_trx_docs(branch)
 
-    doc: TRXDoc | None = None
-    docs_lookup = {d.slug: d for d in flatten_trx_docs(docs_tree)}
     if not doc_path:
-        doc_path = list(docs_lookup.values())[0].rel_slug
-
-    slug = f"{branch}/{doc_path}"
-    doc = docs_lookup.get(slug)
+        doc_path = list(docs.keys())[0]
+    doc = docs.get(doc_path)
     if not doc:
         abort(404)
 
@@ -141,7 +142,7 @@ def trx_docs(branch: str | None, doc_path: str | None) -> Any:
         "TRXDocs",
         branches=branches,
         current_branch=branch,
-        nav=docs_tree,
+        nav=make_docs_nav(docs),
         doc=doc,
     )
 
