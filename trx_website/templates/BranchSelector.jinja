@@ -1,0 +1,11 @@
+{# def branches, current_branch #}
+<div class="branch-selector">
+  <label for="branch-select">Branch:</label>
+  <select id="branch-select" onchange="location.href=this.value">
+    {% for branch, url in branches.items() %}
+      <option value="{{ url }}" {% if branch == current_branch %}selected{% endif %}>
+        {{ branch }}
+      </option>
+    {% endfor %}
+  </select>
+</div>

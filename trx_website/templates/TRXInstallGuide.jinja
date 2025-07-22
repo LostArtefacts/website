@@ -1,4 +1,6 @@
-{# def doc #}
+{# def doc, branches, current_branch #}
 <section class="docs-content">
+  <BranchSelector branches={{ branches }} current_branch={{ current_branch }}/>
+
   <div class="markdown">{{ doc.content|markdown }}</div>
 </section>

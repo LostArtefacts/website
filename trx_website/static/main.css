@@ -600,6 +600,10 @@ table {
   }
 }
 
+.branch-selector {
+  margin-bottom: 1rem;
+}
+
 ol, ul {
   &.no-bullets {
   list-style-type: none;
