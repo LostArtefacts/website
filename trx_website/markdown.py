@@ -1,10 +1,18 @@
 from typing import Any, cast
 
-from marko import Markdown, block
+from marko import Markdown, block, inline
 from marko.ext.gfm import GFM
 from marko.helpers import MarkoExtension, render_dispatch
 from marko.html_renderer import HTMLRenderer
 from marko.md_renderer import MarkdownRenderer
+
+
+def render_jinjax(element: str, **ctx: Any) -> str:
+    # This makes me cry but it's not me who decided to architect the entire
+    # package as a collection of stateless singletons
+    from trx_website.templating import catalog
+
+    return cast(str, catalog.irender(element, **ctx))
 
 
 class Alert(block.Quote):
@@ -39,9 +47,7 @@ class Alert(block.Quote):
 class AlertRendererMixin:
     @render_dispatch(HTMLRenderer)
     def render_alert(self, element):
-        from trx_website.templating import catalog
-
-        return catalog.irender(
+        return render_jinjax(
             "Note",
             variant=element.alert_type.lower(),
             _content=self.render_children(element),
@@ -59,18 +65,25 @@ class AlertRendererMixin:
 
 
 class TRXRendererMixin:
-    def render_heading(self, element: block.Heading) -> str:
-        # This makes me cry but it's not me who decided to architect the entire
-        # package as a collection of stateless singletons
-        from trx_website.templating import catalog
+    def render_link(self, element: inline.AutoLink) -> str:
+        content: str = self.render_children(element)  # type: ignore[attr-defined]
+        url: str = self.escape_url(element.dest)  # type: ignore[attr-defined]
+        title: str | None = (
+            self.escape_html(element.title)  # type: ignore[attr-defined]
+            if element.title
+            else None
+        )
+        if url.startswith(("https://", "http://")):
+            return render_jinjax(
+                "Link", title=title, href=url, _content=content
+            )
+        return cast(str, HTMLRenderer.render_link(self, element))
 
-        return cast(
-            str,
-            catalog.irender(
-                "Heading",
-                level=element.level,
-                _content=self.render_children(element),  # type: ignore[attr-defined]
-            ),
+    def render_heading(self, element: block.Heading) -> str:
+        return render_jinjax(
+            "Heading",
+            level=element.level,
+            _content=self.render_children(element),  # type: ignore[attr-defined]
         )
 
 
