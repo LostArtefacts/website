@@ -1,3 +1,4 @@
+import re
 import time
 from collections import defaultdict
 from collections.abc import Callable, Iterable
@@ -64,9 +65,21 @@ def make_tree(
         for part in path.split("/"):
             node = node[part]
 
+    def natural_sort_key(s: str) -> list[int | str]:
+        return [
+            int(text) if text.isdigit() else text.lower()
+            for text in re.split(r"(\d+)", s)
+        ]
+
     # convert defaultdicts to plain dicts for Jinja
     def to_dict(d: Node) -> dict[str, Any]:
-        return {k: to_dict(v) if v else {} for k, v in d.items()}
+        return {
+            k: to_dict(v) if v else {}
+            for k, v in sorted(
+                d.items(),
+                key=lambda x: (len(x[1]) == 0, natural_sort_key(x[0])),
+            )
+        }
 
     return to_dict(root)
 
