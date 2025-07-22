@@ -1,4 +1,4 @@
-{# def branches, current_branch, nav, doc #}
+{# def branches, commit_sha, current_branch, nav, doc #}
 <Layout active='trx_docs' wide={{ true }}>
   <div class="docs-container">
     <aside class="docs-sidebar">
@@ -25,6 +25,10 @@
       {%- endmacro %}
 
       {{ render_nav(nav) }}
+
+      <p>
+        <Link href={{ "https://github.com/LostArtefacts/TRX/commit/" + commit_sha }}>{{ commit_sha[0:7] }}</Link>
+      </p>
     </aside>
 
     <section class="docs-content">
