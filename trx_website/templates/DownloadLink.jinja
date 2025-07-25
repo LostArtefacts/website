@@ -1,2 +1,2 @@
 {# def asset #}
-<Link href="{{ asset.download_url }}" icon={{ catalog.irender("IconPlatform", platform=asset.platform) }}>{{ asset.name }}</Link>
+<Link href={{ asset.download_url }} icon={{ catalog.irender("IconPlatform", platform=asset.platform) }}>{{ asset.name }}</Link>
