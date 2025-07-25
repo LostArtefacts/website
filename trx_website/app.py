@@ -1,3 +1,5 @@
+import os
+import signal
 from typing import Any
 
 from dotenv import load_dotenv
@@ -191,6 +193,9 @@ def about() -> Any:
 def webhook() -> Any:
     if request.headers.get("X-GitHub-Event") == "release":
         sync_trx_releases()
+        # clear this worker’s cache immediately
+        get_global_context.cache.clear()
+        os.kill(os.getppid(), signal.SIGHUP)
         return {"message": "updated releases"}, 200
     elif request.headers.get("X-GitHub-Event") == "push" and request.json.get(
         "ref"

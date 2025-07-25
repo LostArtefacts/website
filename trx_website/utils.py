@@ -104,6 +104,8 @@ def cache_for(
             cache[key] = (result, time.time())
             return result
 
+        # expose cache for manual invalidation (e.g. immediate flush via webhook)
+        wrapper.cache = cache
         return wrapper
 
     return decorator
