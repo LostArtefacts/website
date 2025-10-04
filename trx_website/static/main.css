@@ -812,3 +812,7 @@ select {
     }
   }
 }
+
+.highlight.inline {
+  display: inline;
+}

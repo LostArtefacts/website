@@ -105,7 +105,7 @@ def cache_for(
             return result
 
         # expose cache for manual invalidation (e.g. immediate flush via webhook)
-        wrapper.cache = cache
+        wrapper.cache = cache  # type: ignore[attr-defined]
         return wrapper
 
     return decorator
