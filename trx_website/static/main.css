@@ -742,6 +742,9 @@ pre {
     }
   }
 }
+.docs-content {
+  flex: 1;
+}
 .docs-content>:first-child,
 .docs-content>.markdown>:first-child {
   margin-top: 0;
