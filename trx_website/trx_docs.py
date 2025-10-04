@@ -180,10 +180,15 @@ def postprocess(doc: TRXDoc, all_docs: list[TRXDoc]) -> None:
 
 def get_trx_doc_branches() -> dict[str, Branch]:
     return {
-        dir.name: Branch(
-            name=dir.name, commit_sha=(dir / "head.txt").read_text()
+        d.name: Branch(
+            name=d.name,
+            commit_sha=(
+                head_file.read_text().strip()
+                if (head_file := d / "head.txt").exists()
+                else "unknown"
+            ),
         )
-        for dir in sorted([p for p in TRX_DOCS_DIR.iterdir() if p.is_dir()])
+        for d in sorted(p for p in TRX_DOCS_DIR.iterdir() if p.is_dir())
     }
 
 
