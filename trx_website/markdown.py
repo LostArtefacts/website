@@ -1,12 +1,16 @@
 import re
+from collections.abc import Iterable
 from typing import Any, cast
 
-from marko import Markdown, block, inline
+from marko import HTMLRenderer, Markdown, block, inline
 from marko.block import HTMLBlock
 from marko.ext.gfm import GFM
-from marko.helpers import MarkoExtension
-from marko.html_renderer import HTMLRenderer
+from marko.helpers import MarkoExtension, render_dispatch
 from marko.source import Source
+from pygments import highlight
+from pygments.formatters import html
+from pygments.lexers import get_lexer_by_name, guess_lexer
+from pygments.util import ClassNotFound
 
 from trx_website.utils import make_tree, parse_fancy_tree
 
@@ -118,9 +122,67 @@ def make_trx_extension() -> MarkoExtension:
     )
 
 
+class TypedCodeSpan(inline.InlineElement):
+    """Inline code span: `code sample`"""
+
+    priority = inline.CodeSpan.priority + 1
+    pattern = re.compile(
+        r"\[([a-z0-9]+)\](?<!`)(`+)(?!`)([\s\S]+?)(?<!`)\2(?!`)"
+    )
+
+    def __init__(self, match: re.Match[str]) -> None:
+        self.lang = match.group(1)
+        self.children = match.group(3).replace("\n", " ")
+        if (
+            self.children.strip()
+            and self.children[0] == self.children[-1] == " "
+        ):
+            self.children = self.children[1:-1]
+
+
+class InlineHtmlFormatter(html.HtmlFormatter):
+    def __init__(self, **options: Any) -> None:
+        default_opt = dict(
+            cssclass="highlight inline", wrapcode=True, lineseparator=""
+        )
+        super().__init__(**{**default_opt, **options})
+
+    def _wrap_pre(self, inner: Any) -> Iterable[Any]:
+        yield from inner
+
+
+class CodeHiliteInlineRendererMixin:
+    @render_dispatch(HTMLRenderer)  # type: ignore[misc]
+    def render_typed_code_span(self, element: TypedCodeSpan) -> str:
+        code = cast(str, element.children)
+        if element.lang:
+            try:
+                lexer = get_lexer_by_name(element.lang, stripall=True)
+            except ClassNotFound:
+                lexer = guess_lexer(code)
+        else:
+            lexer = guess_lexer(code)
+        formatter = InlineHtmlFormatter()
+        highlighted = highlight(code, lexer, formatter)
+        return f"{highlighted}"
+
+
+def make_code_hilite_inline_extension() -> MarkoExtension:
+    return MarkoExtension(
+        elements=[TypedCodeSpan],
+        renderer_mixins=[CodeHiliteInlineRendererMixin],
+    )
+
+
 def render_markdown(md_text: str) -> str:
     md = Markdown(
-        extensions=[make_trx_extension(), make_gfm_extra_extension(), GFM]
+        extensions=[
+            make_trx_extension(),
+            make_gfm_extra_extension(),
+            make_code_hilite_inline_extension(),
+            GFM,
+            "codehilite",
+        ]
     )
     html = cast(str, md.convert(md_text))
     return html

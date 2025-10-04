@@ -194,12 +194,17 @@ def webhook() -> Any:
     if request.headers.get("X-GitHub-Event") == "release":
         sync_trx_releases()
         # clear this worker’s cache immediately
-        get_global_context.cache.clear()
+        get_global_context.cache.clear()  # type: ignore[attr-defined]
         os.kill(os.getppid(), signal.SIGHUP)
         return {"message": "updated releases"}, 200
     elif request.headers.get("X-GitHub-Event") == "push" and request.json.get(
         "ref"
-    ) in ["stable", "refs/heads/stable", "develop", "refs/heads/develop"]:
+    ) in [
+        "stable",
+        "refs/heads/stable",
+        "develop",
+        "refs/heads/develop",
+    ]:
         sync_trx_docs()
         return {"message": "updated docs"}, 200
     return {}, 200
