@@ -646,15 +646,6 @@ ol, ul {
     margin: 1rem 0;
   }
 
-  li {
-    &>:first-child {
-      margin-top: 0;
-    }
-    &>:last-child {
-      margin-bottom: 0;
-    }
-  }
-
   &.bullets-inside {
     padding: 0 0 0 1.25rem;
   }
