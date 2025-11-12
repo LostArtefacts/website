@@ -12,7 +12,11 @@ from trx_website.trx_docs import (
     make_docs_nav,
     sync_trx_docs,
 )
-from trx_website.trx_releases import get_trx_releases, sync_trx_releases
+from trx_website.trx_releases import (
+    GitHubRelease,
+    get_trx_releases,
+    sync_trx_releases,
+)
 from trx_website.utils import cache_for
 
 load_dotenv()
@@ -23,11 +27,16 @@ catalog.jinja_env.globals.update(app.jinja_env.globals)
 catalog.jinja_env.filters.update(app.jinja_env.filters)
 
 
+def has_tag(r: GitHubRelease, *tags: str) -> bool:
+    name = (r.name or "").upper()
+    return any(tag in name for tag in tags)
+
+
 @cache_for(duration=600)
 def get_global_context() -> dict[str, Any]:
     releases = get_trx_releases()
-    tr1x_releases = [r for r in releases if "TR1X" in (r.name or "")]
-    tr2x_releases = [r for r in releases if "TR2X" in (r.name or "")]
+    tr1x_releases = [r for r in releases if has_tag(r, "TR1X", "TRX")]
+    tr2x_releases = [r for r in releases if has_tag(r, "TR2X", "TRX")]
     prerelease = [r for r in releases if r.prerelease][0]
     last_tr1x_release = tr1x_releases[0]
     last_tr2x_release = tr2x_releases[0]

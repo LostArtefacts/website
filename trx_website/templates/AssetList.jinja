@@ -1,0 +1,10 @@
+{# def assets, tag #}
+<ul class='download-links no-bullets'>
+  {% for asset in assets %}
+    {% if tag in asset.name|lower %}
+      <li>
+        <DownloadLink asset={{ asset }}/>
+      </li>
+    {% endif %}
+  {% endfor %}
+</ul>
