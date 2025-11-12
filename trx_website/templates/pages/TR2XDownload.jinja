@@ -4,13 +4,7 @@
   <Heading level={{ 2 }}>Latest stable version</Heading>
 
   <Card>
-    <ul class='download-links no-bullets'>
-      {% for asset in last_tr2x_release.assets %}
-        <li>
-          <DownloadLink asset={{ asset }}/>
-        </li>
-      {% endfor %}
-    </ul>
+    <AssetList assets={{ last_tr2x_release.assets }} tag="tr2"/>
   </Card>
 
   <div class='downloads-video'>
@@ -24,15 +18,7 @@
   </em>
 
   <Card>
-    <ul class='download-links no-bullets'>
-      {% for asset in prerelease.assets %}
-        {% if "TR2X" in asset.name %}
-          <li>
-            <DownloadLink asset={{ asset }}/>
-          </li>
-        {% endif %}
-      {% endfor %}
-    </ul>
+    <AssetList assets={{ prerelease.assets }} tag="tr2"/>
   </Card>
 
   <p>

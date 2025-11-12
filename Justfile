@@ -18,3 +18,6 @@ trx-docs:
 
 clean:
     rm -f trx_website/cache/releases.json
+
+send-update:
+    ssh lostartefacts ./update-prod
