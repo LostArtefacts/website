@@ -68,7 +68,7 @@ class Alert(block.Quote):
 class AlertRendererMixin:
     def render_alert(self, element: Alert) -> str:
         return render_jinjax(
-            "Note",
+            "Card",
             variant=element.alert_type.lower(),
             _content=self.render_children(element),  # type: ignore[attr-defined]
         )

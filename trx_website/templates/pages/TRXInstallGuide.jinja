@@ -1,0 +1,10 @@
+{# def version, doc, branches, current_branch #}
+<TRXBase active={{ "install_guide_" + version }}>
+
+  <section class="docs-content">
+    <BranchSelector branches={{ branches }} current_branch={{ current_branch }}/>
+
+    <div class="markdown">{{ doc.content|markdown }}</div>
+  </section>
+
+</TRXBase>

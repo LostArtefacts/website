@@ -1,27 +1,45 @@
-<TR1XBase active='features'>
+<TRXBase active='features'>
 <section>
-  <Heading level={{ 1 }}>What is TR1X?</Heading>
+  <Heading level={{ 1 }}>What is TRX?</Heading>
 
   <p>
-    TR1X is a lovingly rebuilt, enhanced version of the original Tomb Raider
-    (1996) engine – a passion project that brings Lara's very first adventure
+    TRX is a lovingly rebuilt, enhanced version of the original Tomb Raider I
+    and II engine – a passion project that brings Lara's very first adventure
     into the modern age. It preserves the soul of the classic while adding
     dozens (and dozens!) of improvements, fixes, and optional tweaks. Whether
-    you're a purist or an experimenter, TR1X lets you play your way.
+    you're a purist or an experimenter, TRX lets you play your way.
   </p>
 </section>
 
 <section>
-  <Heading level={{ 1 }}>Features at a glance</Heading>
-  <ul>
-    <li>Smoother UI with scaling, PS1‑style options, and improved health bars</li>
-    <li>Expanded movement set (jump‑twists, somersaults, swimming, wading, TR2+ mechanics!)</li>
-    <li>Full 60 FPS support; powerful photo mode</li>
-    <li>Tons of bug fixes from the original game (goodbye, crashes on level end with Action key held!)</li>
-    <li>Customizable controls, targeting modes, and native controller support</li>
-    <li>Deep modding support with developer console, and external gameflows</li>
-    <li>Linux &amp; macOS builds</li>
-  </ul>
+  <div class='left-right'>
+    <div class='expand'>
+      <Heading level={{ 2 }}>Features at a glance</Heading>
+      <ul>
+        <li>Smoother UI with scaling, PS1‑style look, improved bars</li>
+        <li>Expanded TR1 movement set (jump‑twists, somersaults, swimming, wading, TR2+ mechanics!)</li>
+        <li>No more issues with fullscreen / windowed modes / aspect ratios or need for dgVoodoo</li>
+        <li>Full 60 FPS support</li>
+        <li>Powerful photo mode</li>
+        <li>Countless bug fixes from the original game</li>
+        <li>Customizability of just about anything</li>
+        <li>Deep modding support with developer console, external gameflows, and LUA scripting</li>
+        <li>Native controller support</li>
+        <li>Native Linux &amp; macOS builds</li>
+      </ul>
+    </div>
+
+    <div class='expand'>
+      <Heading level={{ 2 }}>Games supported</Heading>
+      <ul>
+        <li>Tomb Raider I (1996)</li>
+        <li>Tomb Raider I: Unfinished Business</li>
+        <li>Tomb Raider II (1997)</li>
+        <li>Tomb Raider II: The Golden Mask</li>
+      </ul>
+      <p>…with support for Tomb Raider III under active development</p>
+    </div>
+  </div>
 
   <Showcase>
     <ShowcaseItem image={{ url_for('static', filename='tr1x/showcase/console.webp') }}>Developer console</ShowcaseItem>
@@ -29,8 +47,8 @@
     <ShowcaseItem image={{ url_for('static', filename='tr1x/showcase/ps1_ui_and_gfx.jpg') }}>PlayStation 1 UI</ShowcaseItem>
 
     <ShowcaseItem
-        before={{ url_for('static', filename='tr1x/showcase/3d_pickups_before.jpg') }}
-        after={{ url_for('static', filename='tr1x/showcase/3d_pickups_after.jpg') }}>
+        before={{ url_for('static', filename='tr2x/showcase/3d_pickups_before.jpg') }}
+        after={{ url_for('static', filename='tr2x/showcase/3d_pickups_after.jpg') }}>
       3D pickups
     </ShowcaseItem>
     <ShowcaseItem
@@ -49,8 +67,8 @@
       Texture fixes
     </ShowcaseItem>
     <ShowcaseItem
-        before={{ url_for('static', filename='tr1x/showcase/draw_distance_before.jpg') }}
-        after={{ url_for('static', filename='tr1x/showcase/draw_distance_after.jpg') }}>
+        before={{ url_for('static', filename='tr2x/showcase/draw_distance_before.jpg') }}
+        after={{ url_for('static', filename='tr2x/showcase/draw_distance_after.jpg') }}>
       Draw distances
     </ShowcaseItem>
     <ShowcaseItem
@@ -79,7 +97,7 @@
 <p>
   <strong>
     Return to where it all began.<br/>
-    Head over to <a href="{{url_for('tr1x_download') }}">downloads</a> and step back into Lara's very first adventure with TR1X.
+    Head over to <a href="{{url_for('trx_download') }}">downloads</a> and jump back into Lara’s early journeys with TRX.
   </strong>
 </p>
-</TR1XBase>
+</TRXBase>

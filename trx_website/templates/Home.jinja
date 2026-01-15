@@ -1,49 +1,27 @@
 <Layout wide={{ true }} active="home">
   <section class="hero left">
-    <div class="hero-content-image" style="background-image: url('{{ url_for('static', filename='tr1x/hero.png') }}')"></div>
+    <div class="hero-content-image" style="background-image: url('{{ url_for('static', filename='trx_hero.webp') }}')"></div>
     <div class="hero-content-wrapper">
       <div class="hero-content">
-        <a href="{{ url_for('tr1x_landing') }}"><img class="logo" src="{{ url_for('static', filename='tr1x/logo.png') }}"></a>
-        <p>Open-source reimplementation of Tomb Raider I with modern enhancements and countless bug fixes.</p>
+        <a href="{{ url_for('trx_landing') }}"><img class="logo" src="{{ url_for('static', filename='trx_logo.png') }}"></a>
+        <p>Open-source reimplementation of Tomb Raider I and Tomb Raider II with modern enhancements and countless bug fixes.</p>
         <h2>Key Features</h2>
         <ul>
           <li>Smooth 60 FPS and modern rendering</li>
           <li>Rich settings and improved UI</li>
           <li>Photo mode</li>
-          <li>Restored braid and skyboxes</li>
-          <li>Jump twists and other TR2+ goodies</li>
+          <li>Restored content</li>
+          <li>Expanded movesets</li>
           <li>Developer console and debugging commands</li>
+          <li>LUA scripting</li>
           <li>Cross platform</li>
         </ul>
 
         <div class='btn-group'>
-          <DownloadButton release={{last_tr1x_release}}/>{#
-          #}<a href="{{ url_for('tr1x_landing') }}" role="button" class="btn btn-outline-primary">Learn more</a>
+          <DownloadButton release={{prerelease}}/>{#
+          #}<a href="{{ url_for('trx_landing') }}" role="button" class="btn btn-outline-primary">Learn more</a>
         </div>
       </div>
     </div>
   </section>
-
-  <section class="hero right">
-    <div class="hero-content-image" style="background-image: url('{{ url_for('static', filename='tr2x/hero.webp') }}')"></div>
-    <div class="hero-content-wrapper">
-      <div class="hero-content">
-        <a href="{{ url_for('tr2x_landing') }}"><img class="logo" src="{{ url_for('static', filename='tr2x/logo.png') }}"></a>
-        <p>Open-source reimplementation of Tomb Raider II with modern enhancements and countless bug fixes.</p>
-        <h2>Key Features</h2>
-        <ul>
-          <li>Smooth 60 FPS</li>
-          <li>Revamped audio and windowed mode support</li>
-          <li>Rich settings and improved UI</li>
-          <li>Photo mode</li>
-          <li>Developer console and debugging commands</li>
-          <li>Cross platform</li>
-        </ul>
-
-        <DownloadButton release={{last_tr2x_release}}/>
-        <a href="{{ url_for('tr2x_landing') }}" role="button" class="btn btn-outline-primary">Learn more</a>
-      </div>
-    </div>
-  </section>
-
 </Layout>

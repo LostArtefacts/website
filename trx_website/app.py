@@ -38,12 +38,15 @@ def get_global_context() -> dict[str, Any]:
     tr1x_releases = [r for r in releases if has_tag(r, "TR1X", "TRX")]
     tr2x_releases = [r for r in releases if has_tag(r, "TR2X", "TRX")]
     prerelease = [r for r in releases if r.prerelease][0]
+    last_trx_release = releases[0]
     last_tr1x_release = tr1x_releases[0]
     last_tr2x_release = tr2x_releases[0]
     return dict(
+        trx_releases=releases,
         tr1x_releases=tr1x_releases,
         tr2x_releases=tr2x_releases,
         prerelease=prerelease,
+        last_trx_release=last_trx_release,
         last_tr1x_release=last_tr1x_release,
         last_tr2x_release=last_tr2x_release,
         last_tr1x_video=[r for r in tr1x_releases if r.video_embed_url][
@@ -70,19 +73,34 @@ def index() -> Any:
 
 
 @app.route("/tr1x/")
-def tr1x_landing() -> Any:
-    return _render("TR1XLanding")
+@app.route("/tr2x/")
+@app.route("/trx/")
+def trx_landing() -> Any:
+    return _render("TRXLanding")
 
 
 @app.route("/tr1x/download")
-def tr1x_download() -> Any:
-    return _render("TR1XDownload")
+@app.route("/tr2x/download")
+@app.route("/trx/download")
+def trx_download() -> Any:
+    return _render("TRXDownload")
 
 
-@app.route("/tr1x/install_guide/", defaults={"branch": None, "version": "tr1"})
-@app.route("/tr2x/install_guide/", defaults={"branch": None, "version": "tr2"})
-@app.route("/tr1x/install_guide/<branch>/", defaults={"version": "tr1"})
-@app.route("/tr2x/install_guide/<branch>/", defaults={"version": "tr2"})
+@app.route("/tr1x/releases")
+@app.route("/tr2x/releases")
+@app.route("/trx/releases")
+def trx_releases() -> Any:
+    return _render("TRXReleases")
+
+
+@app.route(
+    "/trx/install_guide/tr1/", defaults={"branch": None, "version": "tr1"}
+)
+@app.route(
+    "/trx/install_guide/tr2/", defaults={"branch": None, "version": "tr2"}
+)
+@app.route("/trx/install_guide/tr1/<branch>/", defaults={"version": "tr1"})
+@app.route("/trx/install_guide/tr2/<branch>/", defaults={"version": "tr2"})
 def trx_install_guide(branch: str, version: str) -> Any:
     branch_names = list(get_trx_doc_branches().keys())
     if not branch_names:
@@ -99,10 +117,8 @@ def trx_install_guide(branch: str, version: str) -> Any:
         abort(404)
 
     return _render(
-        {
-            "tr1": "TR1XInstallGuide",
-            "tr2": "TR2XInstallGuide",
-        }[version],
+        "TRXInstallGuide",
+        version=version,
         doc=doc,
         branches={
             b: url_for("trx_install_guide", version=version, branch=b)
@@ -110,26 +126,6 @@ def trx_install_guide(branch: str, version: str) -> Any:
         },
         current_branch=branch,
     )
-
-
-@app.route("/tr1x/releases")
-def tr1x_releases() -> Any:
-    return _render("TR1XReleases")
-
-
-@app.route("/tr2x/")
-def tr2x_landing() -> Any:
-    return _render("TR2XLanding")
-
-
-@app.route("/tr2x/download")
-def tr2x_download() -> Any:
-    return _render("TR2XDownload")
-
-
-@app.route("/tr2x/releases")
-def tr2x_releases() -> Any:
-    return _render("TR2XReleases")
 
 
 @app.route("/rando/")

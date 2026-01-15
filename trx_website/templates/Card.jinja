@@ -1,3 +1,25 @@
-<div class='card'>
+{# def variant=None #}
+{% set icon, title, cls = {
+    'warning':   ('IconDanger', 'Warning', 'warning'),
+    'note':      ('IconInfo', 'Note', 'info'),
+    'info':      ('IconInfo', 'Note', 'info'),
+    'caution':   ('IconStop', 'Caution', 'caution'),
+    'important': ('IconMessageExclamation', 'Important', 'important'),
+    'tip':       ('IconLightbulb', 'Tip', 'tip'),
+  }.get(variant, (None, None, ''))
+%}
+<div class='card {{cls}}'>
+  {% if icon or title %}
+    <div class='header'>
+      {% if icon %}
+        {{ catalog.irender(icon) }}
+      {% endif %}
+      {% if title %}
+        <span>
+          {{ title }}
+        </span>
+      {% endif %}
+    </div>
+  {% endif %}
   {{ content }}
 </div>
