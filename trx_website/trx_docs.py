@@ -22,6 +22,7 @@ IGNORED_FILES: list[str] = [
     "tr2/CHANGELOG.md",
     "tr2/IMPROVEMENTS.md",
     "tr2/README.md",
+    "CHANGELOG.md",
     "SECRETS.md",
     "CONTRIBUTING.md",
 ]

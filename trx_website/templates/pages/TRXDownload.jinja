@@ -1,0 +1,61 @@
+<TRXBase active='downloads'>
+  <Heading level={{ 1 }}>Download</Heading>
+
+  <p>Latest stable version.</p>
+
+  <div class='downloads-video'>
+    <Video video_url={{ last_tr1x_video }} />
+  </div>
+
+  <div class='left-right'>
+    <div class='expand'>
+      <Heading level={{ 3 }}>TR1</Heading>
+      <AssetList assets={{ last_trx_release.assets }} tag='tr1'/>
+    </div>
+    <div class='expand'>
+      <Heading level={{ 3 }}>TR2</Heading>
+      <AssetList assets={{ last_trx_release.assets }} tag='tr2'/>
+    </div>
+  </div>
+
+  <Heading level={{ 1 }}>Development snapshots</Heading>
+
+  <p>Cutting‑edge features, but may be less stable.</p>
+
+  <Card variant='note'>
+    Development snapshots don't include large assets (images, music) to save
+    bandwidth.<br/>
+    You'll need to download them separately.
+  </Card>
+
+  <div class='left-right'>
+    <div class='expand'>
+      <Heading level={{ 3 }}>TR1</Heading>
+      <AssetList assets={{ prerelease.assets }} tag='tr1'/>
+      <ul class='download-links bullets-inside'>
+        <li><Link href="https://lostartefacts.dev/aux/tr1x/main.zip">TR1 main assets</Link></li>
+        <li><Link href="https://lostartefacts.dev/aux/tr1x/music.zip">TR1 music files</Link></li>
+        <li><Link href="https://lostartefacts.dev/aux/tr1x/trub-vanilla.zip">TR1: Unfinished Business (original, no music)</Link></li>
+        <li><Link href="https://lostartefacts.dev/aux/tr1x/trub-music.zip">TR1: Unfinished Business (fan-patched music)</Link></li>
+      </ul>
+    </div>
+
+    <div class='expand'>
+      <Heading level={{ 3 }}>TR2</Heading>
+      <AssetList assets={{ prerelease.assets }} tag='tr2'/>
+      <ul class='download-links bullets-inside'>
+        <li><Link href="https://lostartefacts.dev/aux/tr2x/main.zip">TR2 main assets</Link></li>
+        <li><Link href="https://lostartefacts.dev/aux/tr2x/music.zip">TR2 music files</Link></li>
+        <li><Link href="https://lostartefacts.dev/aux/tr2x/trgm.zip">TR2: The Golden Mask</Link></li>
+      </ul>
+    </div>
+  </div>
+
+  <Heading>What's next?</Heading>
+  <p>
+    TRX needs the original game's assets to run.<br/>
+    Follow our installation guide <a href="{{ url_for('trx_install_guide', version='tr1') }}">for TR1</a> or <a href="{{ url_for('trx_install_guide', version='tr2') }}">for TR2</a>
+    to get set up and start exploring!
+  </p>
+
+</TRXBase>
