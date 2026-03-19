@@ -37,9 +37,12 @@ class Branch:
 @dataclass
 class TRXDoc:
     branch: str
+    root_dir: Path
     path: Path
     content: str
     title: str
+    order: Optional[int] = None
+    has_trx_root: bool = False
     parent: Optional["TRXDoc"] = None
     children: list["TRXDoc"] = field(default_factory=list)
 
@@ -74,24 +77,38 @@ class TRXDoc:
 
     @property
     def rel_slug(self) -> str:
-        """Return the slug relative to the branch (dropping the branch prefix)."""
-        parts = self.slug.split("/", 1)
-        return parts[1] if len(parts) > 1 else ""
+        """Return the document slug used by the docs router for this layout."""
+        parts = self.slug.split("/")
+        prefix_len = 2 if self.has_trx_root else 1
+        if len(parts) <= prefix_len:
+            return ""
+        return "/".join(parts[prefix_len:])
 
     @property
     def rel_path(self) -> Path:
         return self.path.relative_to(TRX_DOCS_DIR)
 
     @classmethod
-    def from_file(cls, md_file: Path, branch: str) -> "TRXDoc":
+    def from_file(
+        cls,
+        md_file: Path,
+        branch: str,
+        root_dir: Path,
+        has_trx_root: bool,
+    ) -> "TRXDoc":
         text = md_file.read_text(encoding="utf-8")
         metadata, content = cls._parse_frontmatter(text)
         title = metadata.get("title", md_file.stem)
+        raw_order = metadata.get("order")
+        order = int(raw_order) if raw_order is not None else None
         return cls(
             branch=branch,
+            root_dir=root_dir,
             path=md_file,
             content=content,
             title=title,
+            order=order,
+            has_trx_root=has_trx_root,
         )
 
     @staticmethod
@@ -141,6 +158,17 @@ def copy_md_files(source_dir: Path, target_dir: Path) -> None:
 
         # Copy file
         shutil.copy(md_file, target_file)
+
+
+def get_docs_source_dir(docs_dir: Path) -> Path:
+    trx_docs_dir = docs_dir / "trx"
+    if trx_docs_dir.exists():
+        return trx_docs_dir
+    return docs_dir
+
+
+def has_trx_root(docs_dir: Path) -> bool:
+    return (docs_dir / "trx").exists()
 
 
 def postprocess(doc: TRXDoc, all_docs: list[TRXDoc]) -> None:
@@ -202,14 +230,21 @@ def get_trx_docs(branch: str) -> dict[str, TRXDoc]:
     branch_dir = TRX_DOCS_DIR / branch
     if not branch_dir.exists():
         return {}
+    source_dir = get_docs_source_dir(branch_dir)
+    uses_trx_root = has_trx_root(branch_dir)
 
     # collect all docs keyed by their slug path segments tuple
     docs_by_key: dict[str, TRXDoc] = {}
-    for md_file in sorted(branch_dir.rglob("*.md")):
-        rel = md_file.relative_to(branch_dir)
+    for md_file in sorted(source_dir.rglob("*.md")):
+        rel = md_file.relative_to(source_dir)
         if str(rel) in IGNORED_FILES:
             continue
-        doc = TRXDoc.from_file(md_file, branch=branch)
+        doc = TRXDoc.from_file(
+            md_file,
+            branch=branch,
+            root_dir=source_dir,
+            has_trx_root=uses_trx_root,
+        )
         docs_by_key[doc.rel_slug] = doc
 
     all_docs = list(docs_by_key.values())
@@ -220,23 +255,29 @@ def get_trx_docs(branch: str) -> dict[str, TRXDoc]:
 
 
 def make_docs_nav(docs_by_key: dict[str, TRXDoc]) -> list[TRXDoc]:
+    def sort_key(doc: TRXDoc) -> tuple[int, str, str]:
+        order = doc.order if doc.order is not None else 999999
+        return order, doc.title.lower(), str(doc.path).lower()
+
     # build parent-child relationships
     children_map: dict[str, list[TRXDoc]] = defaultdict(list)
     for key, doc in docs_by_key.items():
         parent_key = "/".join(key.split("/")[:-1])
+        if parent_key == key:
+            continue
         children_map[parent_key].append(doc)
 
     # attach sorted children to each doc
     for key, doc in docs_by_key.items():
         children = children_map.get(key, [])
-        doc.children = sorted(children, key=lambda d: d.path)
+        doc.children = sorted(children, key=sort_key)
         for child in children:
             child.parent = doc
 
     roots = children_map.get("", [])
 
     # return the root-level docs
-    return sorted(roots, key=lambda d: d.path)
+    return sorted(roots, key=sort_key)
 
 
 def sync_trx_docs() -> None:
@@ -252,7 +293,8 @@ def sync_trx_docs() -> None:
         target_dir = base_target_dir / branch_name
         with clone_repo(repo_url, branch_name) as (repo_dir, repo):
             docs_dir = repo_dir / "docs"
-            copy_md_files(docs_dir, target_dir)
+            source_dir = get_docs_source_dir(docs_dir)
+            copy_md_files(source_dir, target_dir)
             (target_dir / "head.txt").write_text(repo.head.commit.hexsha)
 
 

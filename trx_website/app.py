@@ -148,9 +148,12 @@ def trx_docs(branch: str | None, doc_path: str | None) -> Any:
 
     # build docs tree with title/order hierarchy
     docs = get_trx_docs(branch)
+    nav = make_docs_nav(docs)
 
     if not doc_path:
-        doc_path = list(docs.keys())[0]
+        if not nav:
+            abort(404)
+        doc_path = nav[0].rel_slug
     doc = docs.get(doc_path)
     if not doc:
         abort(404)
@@ -160,7 +163,7 @@ def trx_docs(branch: str | None, doc_path: str | None) -> Any:
         branches={b: url_for("trx_docs", branch=b) for b in branch_names},
         commit_sha=branches[branch].commit_sha,
         current_branch=branch,
-        nav=make_docs_nav(docs),
+        nav=nav,
         doc=doc,
     )
 
