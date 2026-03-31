@@ -41,6 +41,7 @@ class TRXDoc:
     path: Path
     content: str
     title: str
+    has_metadata: bool = False
     order: Optional[int] = None
     has_trx_root: bool = False
     parent: Optional["TRXDoc"] = None
@@ -107,6 +108,7 @@ class TRXDoc:
             path=md_file,
             content=content,
             title=title,
+            has_metadata=bool(metadata),
             order=order,
             has_trx_root=has_trx_root,
         )
@@ -269,12 +271,14 @@ def make_docs_nav(docs_by_key: dict[str, TRXDoc]) -> list[TRXDoc]:
 
     # attach sorted children to each doc
     for key, doc in docs_by_key.items():
-        children = children_map.get(key, [])
+        children = [
+            child for child in children_map.get(key, []) if child.has_metadata
+        ]
         doc.children = sorted(children, key=sort_key)
         for child in children:
             child.parent = doc
 
-    roots = children_map.get("", [])
+    roots = [doc for doc in children_map.get("", []) if doc.has_metadata]
 
     # return the root-level docs
     return sorted(roots, key=sort_key)
