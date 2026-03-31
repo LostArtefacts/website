@@ -3,7 +3,7 @@ import signal
 from typing import Any
 
 from dotenv import load_dotenv
-from flask import Flask, abort, request, url_for
+from flask import Flask, abort, redirect, request, url_for
 
 from trx_website.templating import catalog
 from trx_website.trx_docs import (
@@ -93,6 +93,72 @@ def trx_releases() -> Any:
     return _render("TRXReleases")
 
 
+def _get_trx_install_doc(branch: str, version: str | None) -> Any:
+    docs = get_trx_docs(branch)
+    if version is None:
+        return docs.get("installing")
+    return docs.get(f"{version}/installing") or docs.get("installing")
+
+
+def _render_trx_install_guide(branch: str | None, version: str | None) -> Any:
+    branch_names = list(get_trx_doc_branches().keys())
+    if not branch_names:
+        abort(404)
+
+    preferred_branches = (
+        ["stable", *branch_names] if "stable" in branch_names else branch_names
+    )
+    fallback_branch = next(
+        (
+            candidate
+            for candidate in preferred_branches
+            if candidate in branch_names
+            and _get_trx_install_doc(candidate, version)
+        ),
+        None,
+    )
+
+    if branch is None:
+        branch = fallback_branch
+        if branch is None:
+            abort(404)
+    elif branch not in branch_names:
+        abort(404)
+
+    doc = _get_trx_install_doc(branch, version)
+    if not doc:
+        if fallback_branch is None or fallback_branch == branch:
+            abort(404)
+        return redirect(
+            url_for("trx_combined_install_guide", branch=fallback_branch)
+            if version is None
+            else url_for(
+                "trx_install_guide", version=version, branch=fallback_branch
+            )
+        )
+
+    return _render(
+        "TRXInstallGuide",
+        version=version,
+        doc=doc,
+        branches={
+            b: (
+                url_for("trx_combined_install_guide", branch=b)
+                if version is None
+                else url_for("trx_install_guide", version=version, branch=b)
+            )
+            for b in branch_names
+        },
+        current_branch=branch,
+    )
+
+
+@app.route("/trx/install_guide/", defaults={"branch": None})
+@app.route("/trx/install_guide/<branch>/")
+def trx_combined_install_guide(branch: str | None) -> Any:
+    return _render_trx_install_guide(branch=branch, version=None)
+
+
 @app.route(
     "/trx/install_guide/tr1/", defaults={"branch": None, "version": "tr1"}
 )
@@ -101,31 +167,8 @@ def trx_releases() -> Any:
 )
 @app.route("/trx/install_guide/tr1/<branch>/", defaults={"version": "tr1"})
 @app.route("/trx/install_guide/tr2/<branch>/", defaults={"version": "tr2"})
-def trx_install_guide(branch: str, version: str) -> Any:
-    branch_names = list(get_trx_doc_branches().keys())
-    if not branch_names:
-        abort(404)
-    if branch is None:
-        branch = "stable" if "stable" in branch_names else branch_names[0]
-    elif branch not in branch_names:
-        abort(404)
-
-    # build docs tree with title/order hierarchy
-    docs = get_trx_docs(branch)
-    doc = docs.get(f"{version}/installing")
-    if not doc:
-        abort(404)
-
-    return _render(
-        "TRXInstallGuide",
-        version=version,
-        doc=doc,
-        branches={
-            b: url_for("trx_install_guide", version=version, branch=b)
-            for b in branch_names
-        },
-        current_branch=branch,
-    )
+def trx_install_guide(branch: str | None, version: str | None) -> Any:
+    return _render_trx_install_guide(branch=branch, version=version)
 
 
 @app.route("/rando/")

@@ -80,10 +80,12 @@ class TRXDoc:
     def rel_slug(self) -> str:
         """Return the document slug used by the docs router for this layout."""
         parts = self.slug.split("/")
-        prefix_len = 2 if self.has_trx_root else 1
-        if len(parts) <= prefix_len:
+        if len(parts) <= 1:
             return ""
-        return "/".join(parts[prefix_len:])
+        rel_parts = parts[1:]
+        if rel_parts and rel_parts[0] == "trx":
+            rel_parts = rel_parts[1:]
+        return "/".join(rel_parts)
 
     @property
     def rel_path(self) -> Path:
@@ -162,15 +164,16 @@ def copy_md_files(source_dir: Path, target_dir: Path) -> None:
         shutil.copy(md_file, target_file)
 
 
-def get_docs_source_dir(docs_dir: Path) -> Path:
-    trx_docs_dir = docs_dir / "trx"
-    if trx_docs_dir.exists():
-        return trx_docs_dir
-    return docs_dir
-
-
-def has_trx_root(docs_dir: Path) -> bool:
-    return (docs_dir / "trx").exists()
+def get_docs_source_dirs(docs_dir: Path) -> list[Path]:
+    source_dirs = [
+        docs_dir / dirname for dirname in ("trx", "tr1", "tr2", "tr3")
+    ]
+    existing_source_dirs = [
+        source_dir for source_dir in source_dirs if source_dir.exists()
+    ]
+    if existing_source_dirs:
+        return existing_source_dirs
+    return [docs_dir]
 
 
 def postprocess(doc: TRXDoc, all_docs: list[TRXDoc]) -> None:
@@ -232,20 +235,18 @@ def get_trx_docs(branch: str) -> dict[str, TRXDoc]:
     branch_dir = TRX_DOCS_DIR / branch
     if not branch_dir.exists():
         return {}
-    source_dir = get_docs_source_dir(branch_dir)
-    uses_trx_root = has_trx_root(branch_dir)
 
     # collect all docs keyed by their slug path segments tuple
     docs_by_key: dict[str, TRXDoc] = {}
-    for md_file in sorted(source_dir.rglob("*.md")):
-        rel = md_file.relative_to(source_dir)
+    for md_file in sorted(branch_dir.rglob("*.md")):
+        rel = md_file.relative_to(branch_dir)
         if str(rel) in IGNORED_FILES:
             continue
         doc = TRXDoc.from_file(
             md_file,
             branch=branch,
-            root_dir=source_dir,
-            has_trx_root=uses_trx_root,
+            root_dir=branch_dir,
+            has_trx_root=(branch_dir / "trx").exists(),
         )
         docs_by_key[doc.rel_slug] = doc
 
@@ -297,8 +298,8 @@ def sync_trx_docs() -> None:
         target_dir = base_target_dir / branch_name
         with clone_repo(repo_url, branch_name) as (repo_dir, repo):
             docs_dir = repo_dir / "docs"
-            source_dir = get_docs_source_dir(docs_dir)
-            copy_md_files(source_dir, target_dir)
+            for source_dir in get_docs_source_dirs(docs_dir):
+                copy_md_files(source_dir, target_dir / source_dir.name)
             (target_dir / "head.txt").write_text(repo.head.commit.hexsha)
 
 

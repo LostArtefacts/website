@@ -1,10 +1,17 @@
 {# def active #}
-<nav class="nav">
-  <a href="{{ url_for('trx_landing') }}" {% if active == 'features' %}class="active"{% endif %}>Features</a>
-  <a href="{{ url_for('trx_download') }}" {% if active == 'downloads' %}class="active"{% endif %}>Download</a>
-  <a href="{{ url_for('trx_install_guide', version='tr1') }}" {% if active == 'install_guide_tr1' %}class="active"{% endif %}>Installing (TR1)</a>
-  <a href="{{ url_for('trx_install_guide', version='tr2') }}" {% if active == 'install_guide_tr2' %}class="active"{% endif %}>Installing (TR2)</a>
-  <a href="{{ url_for('trx_releases') }}" {% if active == 'releases' %}class="active"{% endif %}>Release log</a>
-  <Link href="https://github.com/LostArtefacts/TRX/issues/?q=is%3Aissue%20state%3Aopen%20(label%3Atr1,tr2,tr3%20OR%20no%3Alabel)">Support</Link>
+<nav class="nav trx-nav">
+  <div class="nav-row">
+    <a href="{{ url_for('trx_landing') }}" {% if active == 'features' %}class="active"{% endif %}>Features</a>
+    <a href="{{ url_for('trx_download') }}" {% if active == 'downloads' %}class="active"{% endif %}>Download</a>
+    <a href="{{ url_for('trx_combined_install_guide') }}" {% if active in ['install_guide_combined', 'install_guide_tr1', 'install_guide_tr2'] %}class="active"{% endif %}>Installing</a>
+    <a href="{{ url_for('trx_releases') }}" {% if active == 'releases' %}class="active"{% endif %}>Release log</a>
+    <Link href="https://github.com/LostArtefacts/TRX/issues/?q=is%3Aissue%20state%3Aopen%20(label%3Atr1,tr2,tr3%20OR%20no%3Alabel)">Support</Link>
+  </div>
+  {% if active in ['install_guide_combined', 'install_guide_tr1', 'install_guide_tr2'] %}
+    <div class="nav-row nav-row-secondary">
+      <a href="{{ url_for('trx_combined_install_guide') }}" {% if active == 'install_guide_combined' %}class="active"{% endif %}>Combined</a>
+      <a href="{{ url_for('trx_install_guide', version='tr1') }}" {% if active == 'install_guide_tr1' %}class="active"{% endif %}>Legacy (TR1)</a>
+      <a href="{{ url_for('trx_install_guide', version='tr2') }}" {% if active == 'install_guide_tr2' %}class="active"{% endif %}>Legacy (TR2)</a>
+    </div>
+  {% endif %}
 </nav>
-

@@ -449,6 +449,33 @@ nav {
   }
 }
 
+.trx-nav {
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .nav-row {
+    width: 100%;
+    flex-wrap: wrap;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .nav-row-secondary {
+    font-size: 0.95rem;
+
+    a {
+      color: var(--gray-5);
+      padding-top: 0.2rem;
+      padding-bottom: 0.2rem;
+
+      &.active {
+        color: var(--fg);
+      }
+    }
+  }
+}
+
 .markdown {
   li>p:first-child {
     margin-top: 0;
