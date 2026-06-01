@@ -78,6 +78,8 @@ class GitHubReleaseAsset:
             return "windows"
         if "Linux" in self.name:
             return "linux"
+        if "TombEditor" in self.name:
+            return "tomb-editor"
         return "unknown"
 
 
@@ -147,7 +149,13 @@ def get_trx_releases() -> list[GitHubRelease]:
                 created_at=datetime.fromisoformat(item["created_at"]),
                 prerelease=item["prerelease"],
                 assets=sorted(
-                    assets, key=lambda asset: asset.platform, reverse=True
+                    assets,
+                    key=lambda asset: {
+                        "windows": 0,
+                        "linux": 1,
+                        "mac": 2,
+                        "tomb-editor": 3,
+                    }.get(asset.platform, -1),
                 ),
             )
         )
