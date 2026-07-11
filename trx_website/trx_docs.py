@@ -184,7 +184,7 @@ def postprocess(doc: TRXDoc, all_docs: list[TRXDoc]) -> None:
         link = match.group("link")
         file_path = (doc.path.parent / link).resolve()
         if linked_doc := docs_lookup.get(file_path):
-            link = f"/trx/docs/{linked_doc.slug}"
+            link = f"/trx/docs/{linked_doc.branch}/{linked_doc.rel_slug}"
         elif not link.startswith("https://"):
             print("Warning: unknown link", link, match.group("hash"))
         if link_hash := match.group("hash"):
