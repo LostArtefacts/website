@@ -1,4 +1,38 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function storedTheme() {
+    try {
+      const theme = localStorage.getItem('theme');
+      return theme === 'light' || theme === 'dark' ? theme : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+  }
+
+  document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const theme =
+        document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      applyTheme(theme);
+      try {
+        // Remember only explicit choices; without one we follow the system.
+        localStorage.setItem('theme', theme);
+      } catch (e) {
+      }
+    });
+  });
+
+  systemDark.addEventListener('change', (e) => {
+    if (!storedTheme()) {
+      applyTheme(e.matches ? 'dark' : 'light');
+    }
+  });
+
   document.querySelectorAll('.ba-slider').forEach((slider) => {
     const handle = slider.querySelector('.handle');
     const resize = slider.querySelector('.resize');

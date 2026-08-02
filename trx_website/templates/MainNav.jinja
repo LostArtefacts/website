@@ -9,6 +9,10 @@
       <a href="{{ url_for('trx_docs') }}" {% if active == 'trx_docs' %}class="active"{% endif %}>TRX Docs</a>
       <a href="{{ url_for('rando_landing') }}" {% if active == 'rando' %}class="active"{% endif %}>Rando</a>
       <a href="{{ url_for('about') }}" {% if active == 'about' %}class="active"{% endif %}>About</a>
+      <button type="button" class="theme-toggle" data-theme-toggle title="Toggle dark theme" aria-label="Toggle dark theme">
+        <IconSun/>
+        <IconMoon/>
+      </button>
     </nav>
   </div>
 </div>
