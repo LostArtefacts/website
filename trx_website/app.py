@@ -267,6 +267,8 @@ def webhook() -> Any:
         "refs/heads/develop",
     ]:
         sync_trx_docs()
+        # the docs tree is cached per branch; the files just changed underneath
+        get_trx_docs.cache.clear()  # type: ignore[attr-defined]
         return {"message": "updated docs"}, 200
     return {}, 200
 

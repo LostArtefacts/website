@@ -14,6 +14,7 @@ from trx_website.settings import (
     TRX_DOCS_DIR,
     TRX_GITHUB_REPOSITORY,
 )
+from trx_website.utils import cache_for
 
 IGNORED_FILES: list[str] = [
     "tr1/CHANGELOG.md",
@@ -229,11 +230,16 @@ def get_trx_doc_branches() -> dict[str, Branch]:
     }
 
 
+@cache_for(duration=600)
 def get_trx_docs(branch: str) -> dict[str, TRXDoc]:
     """
     Scan the local TRX docs directory for a given branch and build
     a tree of TRXDoc objects, sorted by their path.
     Directories are represented by README.md files.
+
+    Cached: reading and cross-linking the tree costs a few hundred
+    milliseconds, and every docs page needs the whole thing. The webhook
+    clears the cache when it pulls new docs.
     """
     branch_dir = TRX_DOCS_DIR / branch
     if not branch_dir.exists():
