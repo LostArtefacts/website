@@ -13,6 +13,19 @@ from trx_website.settings import (
     TRX_RELEASE_CACHE_PATH,
 )
 
+# TR1X and TR2X were separate projects, each with its own version numbering,
+# until the engines merged into TRX 1.0. The tag is the only part of a release
+# that still says which project it came from.
+RELEASE_LINE_LABELS = {
+    "tr1": "TR1X",
+    "tr2": "TR2X",
+    "trx": "TRX",
+}
+
+RELEASE_TAG_RE = re.compile(
+    rf"^({'|'.join(RELEASE_LINE_LABELS)})-(\d+(?:\.\d+)*)$"
+)
+
 
 def extract_youtube_id(content: str) -> str | None:
     if match := re.search(
@@ -96,6 +109,23 @@ class GitHubRelease:
     @property
     def body(self) -> str:
         return process_release_body(self.raw_body)
+
+    @property
+    def _tag_match(self) -> re.Match[str] | None:
+        return RELEASE_TAG_RE.match(self.tag_name)
+
+    @property
+    def line(self) -> str | None:
+        """Which project this release belongs to, or None if the tag is odd.
+
+        The development snapshot is tagged `latest` and has no line.
+        """
+        match = self._tag_match
+        return match.group(1) if match else None
+
+    @property
+    def line_label(self) -> str | None:
+        return RELEASE_LINE_LABELS.get(self.line or "")
 
     @property
     def youtube_id(self) -> str | None:

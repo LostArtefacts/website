@@ -1,0 +1,27 @@
+{# def release, current_line #}
+<TRXBase active='releases'>
+  <section>
+    <Heading level={{ 1 }}>{{ release.name }}</Heading>
+    <p>
+      Published on {{ release.published_at|format_datetime }} ·
+      <a href="{{ url_for('trx_releases') }}">all releases</a>
+    </p>
+
+    {% if release.line and release.line != current_line %}
+      <Card variant='note'>
+        {{ release.line_label }} was a separate project before the engines
+        merged into TRX 1.0. This changelog is kept for reference and is no
+        longer updated.
+      </Card>
+    {% endif %}
+
+    <div class="markdown">{{ release.body|markdown }}</div>
+  </section>
+
+  {% if release.assets %}
+    <section>
+      <Heading level={{ 2 }}>Downloads</Heading>
+      <AssetList assets={{ release.assets }}/>
+    </section>
+  {% endif %}
+</TRXBase>

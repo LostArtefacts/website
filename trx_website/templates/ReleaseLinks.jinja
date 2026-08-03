@@ -1,0 +1,9 @@
+{# def releases #}
+<ul class='release-links no-bullets'>
+  {% for release in releases %}
+    <li>
+      <a href="{{ url_for('trx_release', slug=release.tag_name) }}">{{ release.name }}</a>
+      <span class='date'>{{ release.published_at|format_datetime }}</span>
+    </li>
+  {% endfor %}
+</ul>

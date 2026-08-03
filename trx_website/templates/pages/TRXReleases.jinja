@@ -1,6 +1,52 @@
+{# def snapshot, latest, older, current_label, legacy, unversioned #}
 <TRXBase active='releases'>
   <section>
     <Heading level={{ 1 }}>Releases</Heading>
-    <ReleaseLog releases={{ trx_releases }}/>
+
+    <Card>
+      <ul class='no-bullets'>
+        <li>
+          <strong>Latest stable:</strong>
+          <a href="{{ url_for('trx_release', slug=latest.tag_name) }}">{{ latest.name }}</a>
+          · {{ latest.published_at|format_datetime }}
+        </li>
+        {% if snapshot %}
+          <li>
+            <strong>Development snapshot:</strong>
+            <a href="{{ url_for('trx_release', slug=snapshot.tag_name) }}">{{ snapshot.name }}</a>
+            · {{ snapshot.published_at|format_datetime }}
+          </li>
+        {% endif %}
+      </ul>
+    </Card>
   </section>
+
+  {% if older %}
+    <section>
+      <Heading level={{ 2 }}>Earlier {{ current_label }} releases</Heading>
+      <ReleaseLinks releases={{ older }}/>
+    </section>
+  {% endif %}
+
+  {% if legacy %}
+    <section>
+      <Heading level={{ 2 }}>Legacy releases</Heading>
+      <p>
+        TR1X and TR2X were separate projects, each with its own version
+        numbering, until the engines merged into TRX 1.0. Their changelogs are
+        kept for reference and are no longer updated.
+      </p>
+      {% for label, group in legacy %}
+        <Heading level={{ 3 }}>{{ label }}</Heading>
+        <ReleaseLinks releases={{ group }}/>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  {% if unversioned %}
+    <section>
+      <Heading level={{ 2 }}>Other releases</Heading>
+      <ReleaseLinks releases={{ unversioned }}/>
+    </section>
+  {% endif %}
 </TRXBase>

@@ -12,7 +12,12 @@ from trx_website.trx_docs import (
     make_docs_nav,
     sync_trx_docs,
 )
-from trx_website.trx_releases import get_trx_releases, sync_trx_releases
+from trx_website.trx_releases import (
+    RELEASE_LINE_LABELS,
+    GitHubRelease,
+    get_trx_releases,
+    sync_trx_releases,
+)
 from trx_website.utils import cache_for
 
 load_dotenv()
@@ -66,11 +71,61 @@ def trx_download() -> Any:
     return _render("TRXDownload")
 
 
+def _split_snapshot(
+    releases: list[GitHubRelease],
+) -> tuple[GitHubRelease | None, list[GitHubRelease]]:
+    """Separate the rolling development snapshot from the released versions.
+
+    Only the newest prerelease is the snapshot - the very first TR1X release
+    was flagged as a prerelease too, and that one is just history.
+    """
+    snapshot = next((r for r in releases if r.prerelease), None)
+    return snapshot, [r for r in releases if r is not snapshot]
+
+
 @app.route("/tr1x/releases")
 @app.route("/tr2x/releases")
 @app.route("/trx/releases")
 def trx_releases() -> Any:
-    return _render("TRXReleases")
+    releases = get_global_context()["trx_releases"]
+    snapshot, rest = _split_snapshot(releases)
+    if not rest:
+        abort(404)
+
+    # whichever project the newest release belongs to is the current one; the
+    # projects that predate the engine merge are linked as legacy history
+    newest = rest[0]
+    current = [r for r in rest if r.line == newest.line]
+
+    return _render(
+        "TRXReleases",
+        snapshot=snapshot,
+        latest=newest,
+        older=[r for r in current if r is not newest],
+        current_label=newest.line_label,
+        legacy=[
+            (label, group)
+            for line, label in sorted(RELEASE_LINE_LABELS.items())
+            if line != newest.line
+            and (group := [r for r in rest if r.line == line])
+        ],
+        # anything whose tag we can't read shouldn't silently vanish
+        unversioned=[r for r in rest if r.line is None],
+    )
+
+
+@app.route("/trx/releases/<slug>/")
+def trx_release(slug: str) -> Any:
+    releases = get_global_context()["trx_releases"]
+    release = next((r for r in releases if r.tag_name == slug), None)
+    if release is None:
+        abort(404)
+    _, rest = _split_snapshot(releases)
+    return _render(
+        "TRXRelease",
+        release=release,
+        current_line=rest[0].line if rest else None,
+    )
 
 
 def _get_trx_install_doc(branch: str) -> Any:
