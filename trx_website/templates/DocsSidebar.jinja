@@ -23,7 +23,7 @@
     {% for nav_doc in docs_list %}
       <li>
         {% if nav_doc.children %}
-          <details {% if doc and nav_doc.has_child(doc) %}open{% endif %}>
+          <details data-section="{{ nav_doc.rel_slug }}" {% if doc and nav_doc.has_child(doc) %}open{% endif %}>
             <summary>{{ nav_label(nav_doc) }}</summary>
             {{ render_nav(nav_doc.children) }}
           </details>
@@ -52,9 +52,52 @@
       return;
     }
 
-    var key = 'docs-sidebar-scroll';
+    var scrollKey = 'docs-sidebar-scroll';
+    var sectionsKey = 'docs-sections';
+    var sections = {};
+
+    // Sections a reader has opened or closed by hand stay that way from here
+    // on. Only sections they have actually touched are stored, so the rest
+    // keep following the server's rule of "open if it holds this document".
     try {
-      var saved = sessionStorage.getItem(key);
+      sections = JSON.parse(localStorage.getItem(sectionsKey) || '{}') || {};
+    } catch (e) {
+    }
+
+    var toggles = sidebar.querySelectorAll('details[data-section]');
+    toggles.forEach(function (details) {
+      var id = details.getAttribute('data-section');
+      if (Object.prototype.hasOwnProperty.call(sections, id)) {
+        details.open = !!sections[id];
+      }
+    });
+
+    // ...except that the document being read must never end up inside a
+    // collapsed section, whatever was stored for it
+    var active = sidebar.querySelector('.active');
+    var section = active && active.closest('details');
+    while (section) {
+      section.open = true;
+      section = section.parentElement
+        && section.parentElement.closest('details');
+    }
+
+    // listeners go on last: the adjustments above are not the reader's doing
+    // and must not be written back as if they were
+    toggles.forEach(function (details) {
+      details.addEventListener('toggle', function () {
+        sections[details.getAttribute('data-section')] = details.open;
+        try {
+          localStorage.setItem(sectionsKey, JSON.stringify(sections));
+        } catch (e) {
+        }
+      });
+    });
+
+    // the offset is restored after the sections settle, since what is open
+    // decides what the offsets mean
+    try {
+      var saved = sessionStorage.getItem(scrollKey);
       if (saved !== null) {
         sidebar.scrollTop = parseFloat(saved) || 0;
       }
@@ -64,7 +107,6 @@
     // whatever the stored offset was, the entry for the document being read
     // has to be visible: it may have been reached from a link in the body, or
     // from outside the site entirely
-    var active = sidebar.querySelector('.active');
     if (active) {
       var top = active.offsetTop;
       var bottom = top + active.offsetHeight;
@@ -76,7 +118,7 @@
 
     window.addEventListener('pagehide', function () {
       try {
-        sessionStorage.setItem(key, sidebar.scrollTop);
+        sessionStorage.setItem(scrollKey, sidebar.scrollTop);
       } catch (e) {
       }
     });
