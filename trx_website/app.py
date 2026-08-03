@@ -93,14 +93,11 @@ def trx_releases() -> Any:
     return _render("TRXReleases")
 
 
-def _get_trx_install_doc(branch: str, version: str | None) -> Any:
-    docs = get_trx_docs(branch)
-    if version is None:
-        return docs.get("installing")
-    return docs.get(f"{version}/installing") or docs.get("installing")
+def _get_trx_install_doc(branch: str) -> Any:
+    return get_trx_docs(branch).get("installing")
 
 
-def _render_trx_install_guide(branch: str | None, version: str | None) -> Any:
+def _render_trx_install_guide(branch: str | None) -> Any:
     branch_names = list(get_trx_doc_branches().keys())
     if not branch_names:
         abort(404)
@@ -112,8 +109,7 @@ def _render_trx_install_guide(branch: str | None, version: str | None) -> Any:
         (
             candidate
             for candidate in preferred_branches
-            if candidate in branch_names
-            and _get_trx_install_doc(candidate, version)
+            if candidate in branch_names and _get_trx_install_doc(candidate)
         ),
         None,
     )
@@ -125,28 +121,19 @@ def _render_trx_install_guide(branch: str | None, version: str | None) -> Any:
     elif branch not in branch_names:
         abort(404)
 
-    doc = _get_trx_install_doc(branch, version)
+    doc = _get_trx_install_doc(branch)
     if not doc:
         if fallback_branch is None or fallback_branch == branch:
             abort(404)
         return redirect(
             url_for("trx_combined_install_guide", branch=fallback_branch)
-            if version is None
-            else url_for(
-                "trx_install_guide", version=version, branch=fallback_branch
-            )
         )
 
     return _render(
         "TRXInstallGuide",
-        version=version,
         doc=doc,
         branches={
-            b: (
-                url_for("trx_combined_install_guide", branch=b)
-                if version is None
-                else url_for("trx_install_guide", version=version, branch=b)
-            )
+            b: url_for("trx_combined_install_guide", branch=b)
             for b in branch_names
         },
         current_branch=branch,
@@ -156,19 +143,7 @@ def _render_trx_install_guide(branch: str | None, version: str | None) -> Any:
 @app.route("/trx/install_guide/", defaults={"branch": None})
 @app.route("/trx/install_guide/<branch>/")
 def trx_combined_install_guide(branch: str | None) -> Any:
-    return _render_trx_install_guide(branch=branch, version=None)
-
-
-@app.route(
-    "/trx/install_guide/tr1/", defaults={"branch": None, "version": "tr1"}
-)
-@app.route(
-    "/trx/install_guide/tr2/", defaults={"branch": None, "version": "tr2"}
-)
-@app.route("/trx/install_guide/tr1/<branch>/", defaults={"version": "tr1"})
-@app.route("/trx/install_guide/tr2/<branch>/", defaults={"version": "tr2"})
-def trx_install_guide(branch: str | None, version: str | None) -> Any:
-    return _render_trx_install_guide(branch=branch, version=version)
+    return _render_trx_install_guide(branch=branch)
 
 
 @app.route("/rando/")
