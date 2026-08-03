@@ -881,6 +881,27 @@ pre {
 }
 .docs-sidebar {
   flex: 0 0 200px;
+  /* follows the reader down a long document, scrolling on its own once the
+     open section is taller than the viewport. It parks a little below the top
+     edge rather than flush against it, so it doesn't crowd the header on the
+     way past, and the height accounts for that gap at both ends. */
+  align-self: flex-start;
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  /* don't hand the wheel back to the page when the list bottoms out */
+  overscroll-behavior: contain;
+  /* keeps the width steady whether or not this page's nav needs a scrollbar */
+  scrollbar-gutter: stable;
+
+  @media (max-width: 799px) {
+    /* stacked above the content - nothing to stick to */
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
   ul {
     margin: 0;
     ul {
@@ -890,6 +911,16 @@ pre {
   li>a, li>span, p>a {
     display: block;
     padding: 0.2rem 0.5rem;
+  }
+
+  summary {
+    cursor: pointer;
+    /* inline-block keeps the label beside the disclosure triangle instead of
+       pushing it onto the next line */
+    >a, >span {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+    }
   }
   a {
     &.active {
