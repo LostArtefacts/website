@@ -1,85 +1,12 @@
 {# def branches, commit_sha, current_branch, nav, doc #}
 <Layout active='trx_docs' wide={{ true }}>
   <div class="docs-container">
-    <aside class="docs-sidebar" id="docs-sidebar">
-      <BranchSelector branches={{ branches }} current_branch={{ current_branch }}/>
-
-      {% macro nav_label(nav_doc) -%}
-        {% if nav_doc.content %}
-          <a href="{{ url_for('trx_docs', branch=current_branch, doc_path=nav_doc.rel_slug) }}" {% if nav_doc == doc %}class="active"{% endif %}>
-            {{ nav_doc.title }}
-          </a>
-        {% else %}
-          <span {% if nav_doc == doc %}class="active"{% endif %}>{{ nav_doc.title }}</span>
-        {% endif %}
-      {%- endmacro %}
-
-      {# sections stay closed unless the document being read lives inside them,
-         so the thirty Lua modules don't bury everything else #}
-      {% macro render_nav(docs_list) -%}
-      <ul class="no-bullets">
-        {% for nav_doc in docs_list %}
-          <li>
-            {% if nav_doc.children %}
-              <details {% if doc and nav_doc.has_child(doc) %}open{% endif %}>
-                <summary>{{ nav_label(nav_doc) }}</summary>
-                {{ render_nav(nav_doc.children) }}
-              </details>
-            {% else %}
-              {{ nav_label(nav_doc) }}
-            {% endif %}
-          </li>
-        {% endfor %}
-      </ul>
-      {%- endmacro %}
-
-      {{ render_nav(nav) }}
-
-      <p>
-        <Link href={{ "https://github.com/LostArtefacts/TRX/commit/" + commit_sha }}>{{ commit_sha[0:7] }}</Link>
-      </p>
-    </aside>
-
-    <script>
-      // The sidebar is its own scroll container and every doc is a fresh page
-      // load, so its offset is carried across navigations by hand. This runs
-      // here rather than on DOMContentLoaded so it lands before first paint.
-      (function () {
-        var sidebar = document.getElementById('docs-sidebar');
-        if (!sidebar) {
-          return;
-        }
-
-        var key = 'docs-sidebar-scroll';
-        try {
-          var saved = sessionStorage.getItem(key);
-          if (saved !== null) {
-            sidebar.scrollTop = parseFloat(saved) || 0;
-          }
-        } catch (e) {
-        }
-
-        // whatever the stored offset was, the entry for the document being
-        // read has to be visible: it may have been reached from a link in the
-        // body, or from outside the site entirely
-        var active = sidebar.querySelector('.active');
-        if (active) {
-          var top = active.offsetTop;
-          var bottom = top + active.offsetHeight;
-          if (top < sidebar.scrollTop
-              || bottom > sidebar.scrollTop + sidebar.clientHeight) {
-            sidebar.scrollTop = top - sidebar.clientHeight / 2;
-          }
-        }
-
-        window.addEventListener('pagehide', function () {
-          try {
-            sessionStorage.setItem(key, sidebar.scrollTop);
-          } catch (e) {
-          }
-        });
-      })();
-    </script>
+    <DocsSidebar
+      branches={{ branches }}
+      commit_sha={{ commit_sha }}
+      current_branch={{ current_branch }}
+      nav={{ nav }}
+      doc={{ doc }}/>
 
     <section class="docs-content">
       {% if doc %}

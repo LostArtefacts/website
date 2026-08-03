@@ -8,12 +8,14 @@ from pathlib import Path
 from typing import Any, Iterator, Match, Optional
 
 from git import Repo
+from markupsafe import Markup, escape
 
 from trx_website.settings import (
     GITHUB_ORGANIZATION,
     TRX_DOCS_DIR,
     TRX_GITHUB_REPOSITORY,
 )
+from trx_website.templating import slugify
 from trx_website.utils import cache_for
 
 IGNORED_FILES: list[str] = [
@@ -264,6 +266,111 @@ def get_trx_docs(branch: str) -> dict[str, TRXDoc]:
         postprocess(doc, all_docs)
 
     return docs_by_key
+
+
+@dataclass
+class SearchHit:
+    doc: TRXDoc
+    score: int
+    anchor: str
+    snippet: Markup
+
+
+HEADING_RE = re.compile(r"^(#{1,6})\s+(.*?)\s*#*$", re.M)
+
+# a heading with markdown in it renders to something whose slug we can't
+# predict from the source text, so those hits link to the top of the page
+PLAIN_HEADING_RE = re.compile(r"^[\w .,'()/-]+$")
+
+SNIPPET_RADIUS = 90
+
+
+def _headings(content: str) -> list[tuple[int, str]]:
+    """Every heading in the document, as (offset, text)."""
+    return [(m.start(), m.group(2)) for m in HEADING_RE.finditer(content)]
+
+
+def _plain(text: str) -> str:
+    """Strip the markup a reader shouldn't see in a one-line snippet."""
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"[`*_#|]+", "", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _snippet(content: str, terms: list[str], at: int) -> Markup:
+    start = max(0, at - SNIPPET_RADIUS)
+    end = min(len(content), at + SNIPPET_RADIUS)
+    text = _plain(content[start:end])
+
+    out = escape(text)
+    for term in sorted(set(terms), key=len, reverse=True):
+        out = Markup(
+            re.sub(
+                f"({re.escape(escape(term))})",
+                r"<mark>\1</mark>",
+                str(out),
+                flags=re.I,
+            )
+        )
+
+    prefix = "…" if start > 0 else ""
+    suffix = "…" if end < len(content) else ""
+    return Markup(prefix) + out + Markup(suffix)
+
+
+def search_docs(docs_by_key: dict[str, TRXDoc], query: str) -> list[SearchHit]:
+    """Rank documents against a free-text query.
+
+    A linear scan over the whole corpus: it is under a megabyte and already in
+    memory, so this costs well under a millisecond and needs no index. Bodies
+    are searched in full, code blocks included - the names people look up, like
+    environment variables and Lua functions, only appear there.
+    """
+    terms = [term for term in query.lower().split() if term]
+    if not terms:
+        return []
+
+    hits: list[SearchHit] = []
+    for doc in docs_by_key.values():
+        title = doc.title.lower()
+        body = doc.content.lower()
+        if not all(term in title or term in body for term in terms):
+            continue
+
+        headings = _headings(doc.content)
+        heading_text = " ".join(text.lower() for _, text in headings)
+        score = sum(
+            title.count(term) * 50
+            + heading_text.count(term) * 10
+            + body.count(term)
+            for term in terms
+        )
+
+        # anchor and snippet both hang off the first body match
+        at = min(
+            (pos for term in terms if (pos := body.find(term)) >= 0),
+            default=-1,
+        )
+        anchor = ""
+        if at >= 0:
+            preceding = [text for pos, text in headings if pos <= at]
+            if preceding and PLAIN_HEADING_RE.match(preceding[-1]):
+                anchor = slugify(preceding[-1])
+
+        hits.append(
+            SearchHit(
+                doc=doc,
+                score=score,
+                anchor=anchor,
+                snippet=(
+                    _snippet(doc.content, terms, at)
+                    if at >= 0
+                    else escape(_plain(doc.content[:SNIPPET_RADIUS]))
+                ),
+            )
+        )
+
+    return sorted(hits, key=lambda hit: (-hit.score, hit.doc.title.lower()))
 
 
 def make_docs_nav(docs_by_key: dict[str, TRXDoc]) -> list[TRXDoc]:

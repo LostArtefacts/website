@@ -880,7 +880,12 @@ pre {
   gap: 2rem;
 }
 .docs-sidebar {
-  flex: 0 0 200px;
+  /* wider than the 200px it used to be, and border-box, so that the padding
+     and the reserved scrollbar gutter come out of the extra rather than out
+     of the space the titles had */
+  flex: 0 0 224px;
+  box-sizing: border-box;
+  padding-right: 0.5rem;
   /* follows the reader down a long document, scrolling on its own once the
      open section is taller than the viewport. It parks a little below the top
      edge rather than flush against it, so it doesn't crowd the header on the
@@ -922,6 +927,28 @@ pre {
       padding: 0.2rem 0.5rem;
     }
   }
+
+  .docs-search {
+    margin: 0.5rem 0 1rem 0;
+
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.3rem 0.5rem;
+      color: var(--fg);
+      background: var(--white);
+      border: 2px solid var(--gray-4);
+      border-radius: var(--border-radius);
+      outline: none;
+      transition:
+        border-color .15s ease-in-out,
+        box-shadow .15s ease-in-out;
+
+      &:hover, &:focus {
+        border-color: var(--accent);
+      }
+    }
+  }
   a {
     &.active {
       background: var(--accent);
@@ -940,6 +967,32 @@ pre {
 }
 .docs-content {
   flex: 1;
+}
+
+.search-results {
+  >li + li {
+    margin-top: 1rem;
+  }
+
+  .snippet {
+    margin: 0.15rem 0 0 0;
+    color: var(--gray-5);
+    font-size: 0.95em;
+  }
+}
+
+mark {
+  padding: 0 0.15em;
+  border-radius: 0.2em;
+  /* Light and dark want opposite treatments here. On white, a solid amber
+     wash with the normal text colour on top reads cleanly. The same fill on
+     a dark background is a mid-luminance brown - muddy, and it drags the text
+     down with it - so dark instead tints the text itself and leaves only a
+     faint wash behind it. */
+  color: light-dark(var(--fg), #ffd479);
+  background: light-dark(
+    #ffe08a,
+    color-mix(in srgb, #ffd479, transparent 86%));
 }
 .docs-content>:first-child,
 .docs-content>.markdown>:first-child {

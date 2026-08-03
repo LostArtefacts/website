@@ -1,0 +1,37 @@
+{# def branches, commit_sha, current_branch, nav, query, hits #}
+<Layout active='trx_docs' wide={{ true }}>
+  <div class="docs-container">
+    <DocsSidebar
+      branches={{ branches }}
+      commit_sha={{ commit_sha }}
+      current_branch={{ current_branch }}
+      nav={{ nav }}
+      query={{ query }}/>
+
+    <section class="docs-content">
+      <Heading level={{ 1 }}>Search</Heading>
+
+      {% if not query %}
+        <p>Type a query into the box on the left to search the {{ current_branch }} documentation.</p>
+      {% elif not hits %}
+        <p>Nothing matched <strong>{{ query }}</strong> in the {{ current_branch }} documentation.</p>
+      {% else %}
+        <p>
+          {{ hits|length }} document{{ '' if hits|length == 1 else 's' }}
+          matching <strong>{{ query }}</strong>
+        </p>
+
+        <ul class='search-results no-bullets'>
+          {% for hit in hits %}
+            <li>
+              <a href="{{ url_for('trx_docs', branch=current_branch, doc_path=hit.doc.rel_slug) }}{{ '#' + hit.anchor if hit.anchor }}">
+                {{ hit.doc.title }}
+              </a>
+              <p class='snippet'>{{ hit.snippet }}</p>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+  </div>
+</Layout>

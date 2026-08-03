@@ -10,6 +10,7 @@ from trx_website.trx_docs import (
     get_trx_doc_branches,
     get_trx_docs,
     make_docs_nav,
+    search_docs,
     sync_trx_docs,
 )
 from trx_website.trx_releases import (
@@ -218,6 +219,30 @@ def trx_docs(branch: str | None, doc_path: str | None) -> Any:
         current_branch=branch,
         nav=nav,
         doc=doc,
+    )
+
+
+@app.route("/trx/docs/<branch>/search/")
+def trx_docs_search(branch: str) -> Any:
+    branches = get_trx_doc_branches()
+    if branch not in branches:
+        abort(404)
+
+    docs = get_trx_docs(branch)
+    query = (request.args.get("q") or "").strip()
+    return _render(
+        "TRXDocsSearch",
+        # keep the query when switching branches - the same question usually
+        # wants asking of the other one
+        branches={
+            b: url_for("trx_docs_search", branch=b, q=query or None)
+            for b in branches
+        },
+        commit_sha=branches[branch].commit_sha,
+        current_branch=branch,
+        nav=make_docs_nav(docs),
+        query=query,
+        hits=search_docs(docs, query),
     )
 
 
