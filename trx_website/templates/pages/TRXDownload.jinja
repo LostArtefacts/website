@@ -4,7 +4,7 @@
   <p>Latest stable version.</p>
 
   <div class='downloads-video'>
-    <Video video_url={{ last_tr1x_video }} />
+    <Video video_url={{ last_trx_video }} />
   </div>
 
   <AssetList assets={{ last_trx_release.assets }}/>
@@ -19,14 +19,19 @@
     You'll need to download them separately.
   </Card>
 
-  <div class='left-right'>
+  <AssetList assets={{ prerelease.assets }}/>
+
+  <Heading level={{ 1 }}>Game assets</Heading>
+
+  <p>A single build runs all three games – each one needs its own assets.</p>
+
+  <div class='left-right by-content'>
     <div class='expand'>
       <Heading level={{ 3 }}>TR1</Heading>
-      <AssetList assets={{ prerelease.assets }} tag='tr1'/>
       <ul class='download-links bullets-inside'>
         <li><Link href="https://lostartefacts.dev/aux/tr1x/main.zip">TR1 main assets</Link></li>
         <li><Link href="https://lostartefacts.dev/aux/tr1x/music.zip">TR1 music files</Link></li>
-        <li><Link href="https://lostartefacts.dev/aux/tr1x/trub.zip">TR1: Unifnished Business additional assets</Link></li>
+        <li><Link href="https://lostartefacts.dev/aux/tr1x/trub.zip">TR1: Unfinished Business additional assets</Link></li>
         <li><Link href="https://lostartefacts.dev/aux/tr1x/trub-vanilla.zip">TR1: Unfinished Business (original, no music)</Link></li>
         <li><Link href="https://lostartefacts.dev/aux/tr1x/trub-music.zip">TR1: Unfinished Business (fan-patched music)</Link></li>
       </ul>
@@ -34,11 +39,18 @@
 
     <div class='expand'>
       <Heading level={{ 3 }}>TR2</Heading>
-      <AssetList assets={{ prerelease.assets }} tag='tr2'/>
       <ul class='download-links bullets-inside'>
         <li><Link href="https://lostartefacts.dev/aux/tr2x/main.zip">TR2 main assets</Link></li>
         <li><Link href="https://lostartefacts.dev/aux/tr2x/music.zip">TR2 music files</Link></li>
         <li><Link href="https://lostartefacts.dev/aux/tr2x/trgm.zip">TR2: The Golden Mask</Link></li>
+      </ul>
+    </div>
+
+    <div class='expand'>
+      <Heading level={{ 3 }}>TR3</Heading>
+      <ul class='download-links bullets-inside'>
+        <li><Link href="https://lostartefacts.dev/aux/tr3x/main.zip">TR3 main assets</Link></li>
+        <li><Link href="https://lostartefacts.dev/aux/tr3x/trla.zip">TR3: The Lost Artifact</Link></li>
       </ul>
     </div>
   </div>
@@ -46,7 +58,7 @@
   <Heading>What's next?</Heading>
   <p>
     TRX needs the original game's assets to run.<br/>
-    Follow our <a href="{{ url_for('trx_combined_install_guide') }}">combined installation guide</a>
+    Follow our <a href="{{ url_for('trx_combined_install_guide') }}">installation guide</a>
     to get set up and start exploring.
   </p>
 

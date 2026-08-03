@@ -780,6 +780,14 @@ ol, ul {
   .expand {
     flex: 1;
   }
+
+  /* Columns of links whose labels differ a lot in length: size each one from
+     its content instead of splitting the row evenly, so a long label borrows
+     the space its neighbours aren't using rather than wrapping. Still shrinks
+     (and ultimately wraps onto its own row) once the labels stop fitting. */
+  &.by-content .expand {
+    flex: 1 1 auto;
+  }
 }
 
 .card {

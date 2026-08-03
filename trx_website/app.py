@@ -12,11 +12,7 @@ from trx_website.trx_docs import (
     make_docs_nav,
     sync_trx_docs,
 )
-from trx_website.trx_releases import (
-    GitHubRelease,
-    get_trx_releases,
-    sync_trx_releases,
-)
+from trx_website.trx_releases import get_trx_releases, sync_trx_releases
 from trx_website.utils import cache_for
 
 load_dotenv()
@@ -27,32 +23,16 @@ catalog.jinja_env.globals.update(app.jinja_env.globals)
 catalog.jinja_env.filters.update(app.jinja_env.filters)
 
 
-def has_tag(r: GitHubRelease, *tags: str) -> bool:
-    name = (r.name or "").upper()
-    return any(tag in name for tag in tags)
-
-
 @cache_for(duration=600)
 def get_global_context() -> dict[str, Any]:
+    # one build covers all three games, so releases are no longer split per
+    # game - what used to be tr1x/tr2x/tr3x is just the release list now
     releases = get_trx_releases()
-    tr1x_releases = [r for r in releases if has_tag(r, "TR1X", "TRX")]
-    tr2x_releases = [r for r in releases if has_tag(r, "TR2X", "TRX")]
-    prerelease = [r for r in releases if r.prerelease][0]
-    last_trx_release = releases[0]
-    last_tr1x_release = tr1x_releases[0]
-    last_tr2x_release = tr2x_releases[0]
     return dict(
         trx_releases=releases,
-        tr1x_releases=tr1x_releases,
-        tr2x_releases=tr2x_releases,
-        prerelease=prerelease,
-        last_trx_release=last_trx_release,
-        last_tr1x_release=last_tr1x_release,
-        last_tr2x_release=last_tr2x_release,
-        last_tr1x_video=[r for r in tr1x_releases if r.video_embed_url][
-            0
-        ].video_embed_url,
-        last_tr2x_video=[r for r in tr2x_releases if r.video_embed_url][
+        prerelease=[r for r in releases if r.prerelease][0],
+        last_trx_release=releases[0],
+        last_trx_video=[r for r in releases if r.video_embed_url][
             0
         ].video_embed_url,
         socials=dict(
