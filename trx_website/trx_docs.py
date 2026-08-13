@@ -48,6 +48,7 @@ class TRXDoc:
     content: str
     title: str
     has_metadata: bool = False
+    hidden: bool = False
     order: Optional[int] = None
     has_trx_root: bool = False
     parent: Optional["TRXDoc"] = None
@@ -117,6 +118,8 @@ class TRXDoc:
             content=content,
             title=title,
             has_metadata=bool(metadata),
+            hidden=str(metadata.get("hidden", "")).lower()
+            in ("1", "true", "yes"),
             order=order,
             has_trx_root=has_trx_root,
         )
@@ -168,6 +171,129 @@ def copy_md_files(source_dir: Path, target_dir: Path) -> None:
 
         # Copy file
         shutil.copy(md_file, target_file)
+
+
+# the shipped scripts, in the order they are listed on the section page.
+# anything the repo ships that isn't named here is listed after these, under
+# its own directory name, so a new game doesn't silently go missing.
+LUA_SCRIPT_GROUPS: dict[str, str] = {
+    "games/tr1": "Tomb Raider I",
+    "games/tr1-ub": "Tomb Raider I - Unfinished Business",
+    "games/tr2": "Tomb Raider II",
+    "games/tr2-gm": "Tomb Raider II - The Golden Mask",
+    "games/tr3": "Tomb Raider III",
+    "games/tr3-la": "Tomb Raider III - The Lost Artifact",
+    "games/tr4": "Tomb Raider IV",
+    "modules": "Shared modules",
+}
+
+LUA_SECTION_INTRO = """\
+These are the Lua scripts TRX ships with, reproduced here exactly as they are
+installed alongside the games. They are the level scripts that drive the
+original games' behavior under TRX, so they double as worked examples of the
+API: read one next to the level it belongs to and you can see how the hooks
+described in the rest of this section are used in practice.
+
+Each script is shown verbatim. To adapt one, copy it into your own project's
+`data/scripts` directory and point your game flow at it.
+"""
+
+
+def _fence(content: str) -> str:
+    """A code fence long enough to survive whatever backticks are inside."""
+    longest = max((len(run) for run in re.findall(r"`+", content)), default=0)
+    return "`" * max(3, longest + 1)
+
+
+def _lua_script_dirs(ship_dir: Path) -> list[tuple[str, str, Path]]:
+    """Every directory of shipped scripts, as (key, label, path)."""
+    found: dict[str, Path] = {}
+    for scripts_dir in sorted(ship_dir.glob("games/*/scripts")):
+        found[f"games/{scripts_dir.parent.name}"] = scripts_dir
+    if (modules_dir := ship_dir / "modules").is_dir():
+        found["modules"] = modules_dir
+
+    known = [
+        (key, label, found[key])
+        for key, label in LUA_SCRIPT_GROUPS.items()
+        if key in found
+    ]
+    unknown = [
+        (key, key.split("/")[-1], path)
+        for key, path in sorted(found.items())
+        if key not in LUA_SCRIPT_GROUPS
+    ]
+    return [
+        (key, label, path)
+        for key, label, path in known + unknown
+        if any(path.glob("*.lua"))
+    ]
+
+
+def write_lua_script_docs(
+    repo_dir: Path, ship_dir: Path, target_dir: Path
+) -> None:
+    """Turn the shipped Lua scripts into a docs section.
+
+    The scripts live outside the docs tree in the TRX repository and are not
+    markdown, so they are wrapped into generated pages here: one index listing
+    every script, and one hidden page per script holding its source. Going
+    through the docs tree rather than a route of its own means the branch
+    selector, the sidebar, the search and the syntax highlighting all apply to
+    them for free.
+    """
+    groups = _lua_script_dirs(ship_dir)
+    if not groups:
+        return
+
+    index = [
+        "---",
+        "title: Shipped scripts",
+        "order: 99",
+        "---",
+        "",
+        "## Shipped scripts",
+        "",
+        LUA_SECTION_INTRO,
+    ]
+
+    for key, label, scripts_dir in groups:
+        index += ["", f"### {label}", ""]
+        for script in sorted(scripts_dir.glob("*.lua")):
+            source = script.relative_to(repo_dir)
+            content = script.read_text(encoding="utf-8")
+            fence = _fence(content)
+
+            page = target_dir / key / f"{script.stem}.md"
+            page.parent.mkdir(parents=True, exist_ok=True)
+            page.write_text(
+                "\n".join(
+                    [
+                        "---",
+                        f"title: {label} - {script.name}",
+                        "hidden: true",
+                        "---",
+                        "",
+                        f"## {script.name}",
+                        "",
+                        f"Shipped with TRX as `{source}`.",
+                        "",
+                        fence + "lua",
+                        content.rstrip("\n"),
+                        fence,
+                        "",
+                        "[Back to the shipped scripts](../"
+                        + ("../" if "/" in key else "")
+                        + "README.md)",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            index.append(f"- [{script.name}]({key}/{script.stem}.md)")
+
+    index.append("")
+    (target_dir / "README.md").write_text("\n".join(index), encoding="utf-8")
 
 
 def get_docs_source_dirs(docs_dir: Path) -> list[Path]:
@@ -373,6 +499,24 @@ def search_docs(docs_by_key: dict[str, TRXDoc], query: str) -> list[SearchHit]:
     return sorted(hits, key=lambda hit: (-hit.score, hit.doc.title.lower()))
 
 
+def nav_doc_for(docs_by_key: dict[str, TRXDoc], doc: TRXDoc) -> TRXDoc:
+    """Return the sidebar entry a document is read under.
+
+    Hidden documents - the generated pages for the shipped Lua scripts - have
+    no entry of their own, so the sidebar highlights the nearest visible
+    ancestor instead of losing its place entirely.
+    """
+    if not doc.hidden:
+        return doc
+    key = doc.rel_slug
+    while key:
+        key = "/".join(key.split("/")[:-1])
+        parent = docs_by_key.get(key)
+        if parent is not None and not parent.hidden:
+            return parent
+    return doc
+
+
 def make_docs_nav(docs_by_key: dict[str, TRXDoc]) -> list[TRXDoc]:
     def sort_key(doc: TRXDoc) -> tuple[int, str, str]:
         order = doc.order if doc.order is not None else 999999
@@ -386,16 +530,19 @@ def make_docs_nav(docs_by_key: dict[str, TRXDoc]) -> list[TRXDoc]:
             continue
         children_map[parent_key].append(doc)
 
+    def in_nav(doc: TRXDoc) -> bool:
+        return doc.has_metadata and not doc.hidden
+
     # attach sorted children to each doc
     for key, doc in docs_by_key.items():
         children = [
-            child for child in children_map.get(key, []) if child.has_metadata
+            child for child in children_map.get(key, []) if in_nav(child)
         ]
         doc.children = sorted(children, key=sort_key)
         for child in children:
             child.parent = doc
 
-    roots = [doc for doc in children_map.get("", []) if doc.has_metadata]
+    roots = [doc for doc in children_map.get("", []) if in_nav(doc)]
 
     # return the root-level docs
     return sorted(roots, key=sort_key)
@@ -416,6 +563,14 @@ def sync_trx_docs() -> None:
             docs_dir = repo_dir / "docs"
             for source_dir in get_docs_source_dirs(docs_dir):
                 copy_md_files(source_dir, target_dir / source_dir.name)
+            # only branches that document Lua have a section to hang the
+            # shipped scripts off
+            if (target_dir / "trx/lua/README.md").exists():
+                write_lua_script_docs(
+                    repo_dir,
+                    repo_dir / "data/trx/ship",
+                    target_dir / "trx/lua/scripts",
+                )
             (target_dir / "head.txt").write_text(repo.head.commit.hexsha)
 
 

@@ -1,4 +1,4 @@
-{# def branches, commit_sha, current_branch, nav, doc #}
+{# def branches, commit_sha, current_branch, nav, doc, nav_doc=None #}
 <Layout active='trx_docs' wide={{ true }}>
   <div class="docs-container">
     <DocsSidebar
@@ -6,7 +6,7 @@
       commit_sha={{ commit_sha }}
       current_branch={{ current_branch }}
       nav={{ nav }}
-      doc={{ doc }}/>
+      doc={{ nav_doc or doc }}/>
 
     <section class="docs-content">
       {% if doc %}

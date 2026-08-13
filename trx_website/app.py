@@ -10,6 +10,7 @@ from trx_website.trx_docs import (
     get_trx_doc_branches,
     get_trx_docs,
     make_docs_nav,
+    nav_doc_for,
     search_docs,
     sync_trx_docs,
 )
@@ -219,6 +220,9 @@ def trx_docs(branch: str | None, doc_path: str | None) -> Any:
         current_branch=branch,
         nav=nav,
         doc=doc,
+        # a script page has no sidebar entry of its own; the section it was
+        # reached from stays highlighted while it is being read
+        nav_doc=nav_doc_for(docs, doc),
     )
 
 
