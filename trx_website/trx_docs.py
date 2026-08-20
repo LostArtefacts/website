@@ -315,7 +315,10 @@ def postprocess(doc: TRXDoc, all_docs: list[TRXDoc]) -> None:
         text = match.group("text")
         link = match.group("link")
         file_path = (doc.path.parent / link).resolve()
-        if linked_doc := docs_lookup.get(file_path):
+        if not link:
+            # an anchor alone points within the page being processed
+            pass
+        elif linked_doc := docs_lookup.get(file_path):
             link = f"/trx/docs/{linked_doc.branch}/{linked_doc.rel_slug}"
         elif not link.startswith("https://"):
             print("Warning: unknown link", link, match.group("hash"))
@@ -332,7 +335,7 @@ def postprocess(doc: TRXDoc, all_docs: list[TRXDoc]) -> None:
         return f'<a href="{link}">{text}</a>'
 
     doc.content = re.sub(
-        r"\[(?P<text>[^\]]*)\]\((?P<link>[^)]*?)(?P<hash>#[^\]]*)?\)",
+        r"\[(?P<text>[^\]]*)\]\((?P<link>[^)#]*?)(?P<hash>#[^)]*)?\)",
         process_md_link,
         doc.content,
     )
