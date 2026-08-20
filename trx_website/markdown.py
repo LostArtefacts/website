@@ -100,6 +100,11 @@ class TRXRendererMixin:
             )
         return cast(str, HTMLRenderer.render_link(self, element))
 
+    def render_line_break(self, element: inline.LineBreak) -> str:
+        if getattr(element, "ends_lead_in", False):
+            return "<br />\n"
+        return cast(str, HTMLRenderer.render_line_break(self, element))
+
     def render_heading(self, element: block.Heading) -> str:
         return render_jinjax(
             "Heading",
@@ -184,6 +189,29 @@ def make_code_hilite_inline_extension() -> MarkoExtension:
     )
 
 
+def mark_lead_ins(element: Any) -> None:
+    """
+    Flag the soft line break that ends a bold lead-in.
+
+    The docs open many a paragraph with a bold lead-in on a line of its own,
+    followed by the explanation, and mean the two to land on separate lines.
+    Every other soft break is the source file's own hard wrap and keeps
+    collapsing into a space, or the prose would render at whatever width the
+    file happens to be wrapped to.
+    """
+    children = getattr(element, "children", None)
+    if not isinstance(children, list):
+        return
+    for i, child in enumerate(children):
+        mark_lead_ins(child)
+        if not isinstance(child, inline.LineBreak) or not child.soft:
+            continue
+        if i < 1 or not isinstance(children[i - 1], inline.StrongEmphasis):
+            continue
+        if i == 1 or isinstance(children[i - 2], inline.LineBreak):
+            child.ends_lead_in = True
+
+
 def render_markdown(md_text: str) -> str:
     md = Markdown(
         extensions=[
@@ -194,5 +222,7 @@ def render_markdown(md_text: str) -> str:
             "codehilite",
         ]
     )
-    html = cast(str, md.convert(md_text))
+    doc = md.parse(md_text)
+    mark_lead_ins(doc)
+    html = cast(str, md.render(doc))
     return html
