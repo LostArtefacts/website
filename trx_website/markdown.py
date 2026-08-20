@@ -126,8 +126,11 @@ class TypedCodeSpan(inline.InlineElement):
     """Inline code span: `code sample`"""
 
     priority = inline.CodeSpan.priority + 1
+    # The [lang] tag only counts as one when it opens the span - an index like
+    # `trx.items[0]` sits mid-word, and letting it start a span would swallow
+    # the rest of the code span and everything up to the next backtick.
     pattern = re.compile(
-        r"\[([a-z0-9]+)\](?<!`)(`+)(?!`)([\s\S]+?)(?<!`)\2(?!`)"
+        r"(?<![\w`])\[([a-z0-9]+)\](?<!`)(`+)(?!`)([\s\S]+?)(?<!`)\2(?!`)"
     )
 
     def __init__(self, match: re.Match[str]) -> None:
