@@ -153,6 +153,13 @@ class InlineHtmlFormatter(html.HtmlFormatter):
     def _wrap_pre(self, inner: Any) -> Iterable[Any]:
         yield from inner
 
+    def _wrap_div(self, inner: Any) -> Iterable[Any]:
+        # The default wrapper is a <div>, which is block level and so breaks
+        # the line of the paragraph the span sits in.
+        yield 0, f'<span class="{self.cssclass}">'
+        yield from inner
+        yield 0, "</span>"
+
 
 class CodeHiliteInlineRendererMixin:
     @render_dispatch(HTMLRenderer)  # type: ignore[misc]
@@ -166,8 +173,8 @@ class CodeHiliteInlineRendererMixin:
         else:
             lexer = guess_lexer(code)
         formatter = InlineHtmlFormatter()
-        highlighted = highlight(code, lexer, formatter)
-        return f"{highlighted}"
+        highlighted = cast(str, highlight(code, lexer, formatter))
+        return highlighted.strip()
 
 
 def make_code_hilite_inline_extension() -> MarkoExtension:
