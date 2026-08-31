@@ -1,6 +1,7 @@
 import re
 import shutil
 import tempfile
+import time
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -8,6 +9,7 @@ from pathlib import Path
 from typing import Any, Iterator, Match, Optional
 
 from git import Repo
+from git.exc import GitCommandError
 from markupsafe import Markup, escape
 
 from trx_website.settings import (
@@ -17,6 +19,9 @@ from trx_website.settings import (
 )
 from trx_website.templating import slugify
 from trx_website.utils import cache_for
+
+CLONE_ATTEMPTS = 3
+CLONE_RETRY_DELAY = 5.0
 
 IGNORED_FILES: list[str] = [
     "tr1/CHANGELOG.md",
@@ -146,10 +151,37 @@ class TRXDoc:
 def clone_repo(repo_url: str, branch_name: str) -> Iterator[tuple[Path, Repo]]:
     with tempfile.TemporaryDirectory() as tmpdirname:
         cloned_repo_dir = Path(tmpdirname)
-        repo = Repo.clone_from(
-            repo_url, cloned_repo_dir, branch=branch_name, depth=1
-        )
+        repo = clone_with_retries(repo_url, branch_name, cloned_repo_dir)
         yield cloned_repo_dir, repo
+
+
+def clone_with_retries(
+    repo_url: str, branch_name: str, target_dir: Path
+) -> Repo:
+    """
+    Clone a branch, retrying a few times with a growing pause.
+
+    GitHub occasionally rejects an anonymous clone of a public repo - it
+    answers the fetch with a credentials prompt, which git reports as
+    "could not read Username". That clears on its own, so a couple of
+    retries turn a failed sync into a slow one.
+    """
+    for attempt in range(1, CLONE_ATTEMPTS + 1):
+        try:
+            return Repo.clone_from(
+                repo_url, target_dir, branch=branch_name, depth=1
+            )
+        except GitCommandError:
+            if attempt == CLONE_ATTEMPTS:
+                raise
+            # a fresh clone needs an empty directory
+            for child in target_dir.iterdir():
+                if child.is_dir() and not child.is_symlink():
+                    shutil.rmtree(child)
+                else:
+                    child.unlink()
+            time.sleep(CLONE_RETRY_DELAY * 2 ** (attempt - 1))
+    raise AssertionError("unreachable")
 
 
 def copy_md_files(source_dir: Path, target_dir: Path) -> None:
@@ -348,6 +380,9 @@ def postprocess(doc: TRXDoc, all_docs: list[TRXDoc]) -> None:
 
 
 def get_trx_doc_branches() -> dict[str, Branch]:
+    if not TRX_DOCS_DIR.exists():
+        # nothing has been synced yet
+        return {}
     return {
         d.name: Branch(
             name=d.name,
@@ -552,11 +587,18 @@ def make_docs_nav(docs_by_key: dict[str, TRXDoc]) -> list[TRXDoc]:
 
 
 def sync_trx_docs() -> None:
+    """
+    Rebuild the local docs tree from the TRX repository.
+
+    The new tree is built off to the side and only swapped in once every
+    branch has been fetched, so a failing clone leaves the docs that are
+    already being served untouched.
+    """
     repo_url = (
         f"https://github.com/{GITHUB_ORGANIZATION}/{TRX_GITHUB_REPOSITORY}.git"
     )
     branches = ["develop", "stable"]
-    base_target_dir = TRX_DOCS_DIR
+    base_target_dir = TRX_DOCS_DIR.parent / f"{TRX_DOCS_DIR.name}.new"
 
     if base_target_dir.exists():
         shutil.rmtree(base_target_dir)
@@ -575,6 +617,25 @@ def sync_trx_docs() -> None:
                     target_dir / "trx/lua/scripts",
                 )
             (target_dir / "head.txt").write_text(repo.head.commit.hexsha)
+
+    swap_in_docs(base_target_dir, TRX_DOCS_DIR)
+
+
+def swap_in_docs(new_dir: Path, target_dir: Path) -> None:
+    """
+    Put a freshly built docs tree in place of the current one.
+
+    Both directories are siblings, so the renames are atomic and the
+    window in which no tree is in place is a single syscall wide.
+    """
+    old_dir = target_dir.parent / f"{target_dir.name}.old"
+    if old_dir.exists():
+        shutil.rmtree(old_dir)
+    if target_dir.exists():
+        target_dir.rename(old_dir)
+    new_dir.rename(target_dir)
+    if old_dir.exists():
+        shutil.rmtree(old_dir)
 
 
 if __name__ == "__main__":

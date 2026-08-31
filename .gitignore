@@ -4,3 +4,5 @@ __pycache__/
 .env
 trx_website/cache/
 trx_website/trx_docs/
+trx_website/trx_docs.new/
+trx_website/trx_docs.old/
