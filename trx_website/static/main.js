@@ -1,36 +1,39 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+  const themes = ['system', 'light', 'dark'];
+  const themeLabels = {system: 'System', light: 'Light', dark: 'Dark'};
 
-  function storedTheme() {
-    try {
-      const theme = localStorage.getItem('theme');
-      return theme === 'light' || theme === 'dark' ? theme : null;
-    } catch (e) {
-      return null;
-    }
+  function currentTheme() {
+    const theme = document.documentElement.dataset.theme;
+    return theme === 'light' || theme === 'dark' ? theme : 'system';
   }
 
-  function applyTheme(theme) {
-    document.documentElement.dataset.theme = theme;
+  function labelToggle(button) {
+    const theme = currentTheme();
+    const next = themes[(themes.indexOf(theme) + 1) % themes.length];
+    const label =
+      'Theme: ' + themeLabels[theme] + ' (switch to ' + themeLabels[next] + ')';
+    button.title = label;
+    button.setAttribute('aria-label', label);
   }
 
-  document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+  const themeToggles = document.querySelectorAll('[data-theme-toggle]');
+  themeToggles.forEach((button) => {
+    labelToggle(button);
     button.addEventListener('click', () => {
       const theme =
-        document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-      applyTheme(theme);
+        themes[(themes.indexOf(currentTheme()) + 1) % themes.length];
       try {
-        // Remember only explicit choices; without one we follow the system.
-        localStorage.setItem('theme', theme);
+        if (theme === 'system') {
+          delete document.documentElement.dataset.theme;
+          localStorage.removeItem('theme');
+        } else {
+          document.documentElement.dataset.theme = theme;
+          localStorage.setItem('theme', theme);
+        }
       } catch (e) {
       }
+      themeToggles.forEach(labelToggle);
     });
-  });
-
-  systemDark.addEventListener('change', (e) => {
-    if (!storedTheme()) {
-      applyTheme(e.matches ? 'dark' : 'light');
-    }
   });
 
   document.querySelectorAll('.ba-slider').forEach((slider) => {

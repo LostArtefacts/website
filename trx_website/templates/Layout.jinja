@@ -10,7 +10,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='pygments.css') }}">
   <script>
-    // Resolve the theme before first paint to avoid a flash of the wrong one.
+    // Apply a stored theme before first paint to avoid a flash of the wrong
+    // one. Without one we leave data-theme unset and follow the OS.
     (function () {
       var stored;
       try {
@@ -18,10 +19,9 @@
       } catch (e) {
         stored = null;
       }
-      document.documentElement.dataset.theme =
-        stored === 'light' || stored === 'dark'
-          ? stored
-          : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      if (stored === 'light' || stored === 'dark') {
+        document.documentElement.dataset.theme = stored;
+      }
     })();
   </script>
 </head>

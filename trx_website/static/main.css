@@ -519,13 +519,18 @@ nav {
     height: 1.3rem;
   }
 
-  /* Show the icon for the theme the button switches *to*. */
-  .icon-sun {
+  /* Show the icon for the current theme; no attribute means "system". */
+  .icon-sun,
+  .icon-moon {
     display: none;
   }
-  :root[data-theme="dark"] & {
+  :root[data-theme="light"] & {
+    .icon-sun-moon { display: none; }
     .icon-sun { display: block; }
-    .icon-moon { display: none; }
+  }
+  :root[data-theme="dark"] & {
+    .icon-sun-moon { display: none; }
+    .icon-moon { display: block; }
   }
 
   &:hover {
