@@ -1,0 +1,42 @@
+name: Deploy
+
+# A push to main runs /srv/lostartefacts/update on the server, the only
+# command its deploy key may run: it pulls main, syncs the packages and
+# reloads gunicorn. Needs the repository variables DEPLOY_HOST and
+# DEPLOY_USER and the secrets DEPLOY_SSH_KEY and DEPLOY_KNOWN_HOSTS.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Check the lockfile
+        run: uv lock --check
+
+      - name: Deploy
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          umask 077
+          trap 'rm -f key known_hosts' EXIT
+          printf '%s\n' "$DEPLOY_SSH_KEY" > key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > known_hosts
+          ssh -i key -o IdentitiesOnly=yes -o UserKnownHostsFile=known_hosts \
+            "$DEPLOY_USER@$DEPLOY_HOST" -T /srv/lostartefacts/update
